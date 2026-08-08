@@ -1,0 +1,7 @@
+flask
+flask-socketio
+mediapipe
+opencv-python
+scikit-learn
+numpy
+pyttsx3
