@@ -1,0 +1,172 @@
+{
+  "environment": {
+    "python": "3.14.0",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel(R) Core(TM) Ultra 5 125H",
+    "sklearn": "1.8.0",
+    "numpy": "2.4.2",
+    "scipy": "1.17.1"
+  },
+  "descriptive": {
+    "n_samples": 842,
+    "n_classes_present": 18,
+    "n_classes_target": 35,
+    "missing_classes": [
+      "H",
+      "HELP",
+      "N",
+      "NO",
+      "O",
+      "P",
+      "PLEASE",
+      "Q",
+      "R",
+      "S",
+      "SORRY",
+      "T",
+      "W",
+      "X",
+      "Y",
+      "YES",
+      "Z"
+    ],
+    "class_counts": {
+      "A": 47,
+      "B": 108,
+      "C": 126,
+      "D": 105,
+      "E": 55,
+      "F": 30,
+      "G": 35,
+      "GOOD": 39,
+      "HELLO": 38,
+      "I": 21,
+      "J": 17,
+      "K": 19,
+      "L": 44,
+      "LOVE": 17,
+      "M": 22,
+      "THANKYOU": 18,
+      "U": 33,
+      "V": 68
+    },
+    "burst_counts_per_class": {
+      "A": 1,
+      "B": 1,
+      "C": 1,
+      "D": 1,
+      "E": 2,
+      "F": 1,
+      "G": 1,
+      "GOOD": 1,
+      "HELLO": 1,
+      "I": 1,
+      "J": 1,
+      "K": 1,
+      "L": 1,
+      "LOVE": 1,
+      "M": 1,
+      "THANKYOU": 1,
+      "U": 1,
+      "V": 1
+    },
+    "unique_signer_ids": [
+      "unknown_legacy"
+    ],
+    "unique_session_ids": [
+      "unknown_legacy"
+    ],
+    "classes_with_ge2_bursts": [
+      "E"
+    ]
+  },
+  "near_duplication": {
+    "intra_burst_mean": 0.3538430042337133,
+    "intra_burst_median": 0.13705368613000385,
+    "intra_burst_n_pairs": 823,
+    "cross_burst_mean": 3.031754979503053,
+    "cross_burst_median": 2.124349543326588,
+    "cross_burst_n_pairs": 165,
+    "cross_over_intra_ratio": 8.568079468092519,
+    "exact_duplicate_fraction": 0.1421628189550425,
+    "caveat": "cross-burst pairs come almost entirely from the single class (E) with >1 burst -- this estimate is not class-balanced and should not be read as precise; it is directionally indicative only, given n_pairs above."
+  },
+  "leakage_demo": {
+    "naive_random_split": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "n_test": 169
+    },
+    "burst_disjoint_split": {
+      "accuracy": 0.0,
+      "macro_f1": 0.0,
+      "n_test": 372,
+      "classes_missing_from_train": [
+        "B",
+        "C",
+        "D",
+        "U"
+      ]
+    },
+    "interpretation": "The near-100% naive-split accuracy is an artifact of near-duplicate frames from the same continuous recording burst appearing on both sides of the split. The burst-disjoint collapse is not a measure of poor model quality either -- most classes have only ONE recording burst, so holding a burst out removes that class from training entirely. Neither number estimates real-world generalization; see docs/data_collection_protocol.md."
+  },
+  "repeated_split_stats": {
+    "n_seeds": 20,
+    "accuracy_mean": 0.9994082840236687,
+    "accuracy_std": 0.002579230144106896,
+    "accuracy_bootstrap_95ci": [
+      0.9982248520710059,
+      1.0
+    ],
+    "macro_f1_mean": 0.9995756172839506,
+    "macro_f1_std": 0.0018498413726445967,
+    "same_burst_1nn_collision_rate_mean": 1.0,
+    "same_burst_1nn_collision_rate_std": 0.0,
+    "same_burst_1nn_collision_rate_bootstrap_95ci": [
+      1.0,
+      1.0
+    ],
+    "interpretation": "A same-burst 1-NN collision rate this high means the reported accuracy is dominated by near-duplicate matching within a burst, not sign discrimination.",
+    "pseudo_replication_caveat": "The 20 seeds are overlapping 80/20 resamples of the same 842 rows, not 20 independent datasets -- this measures sensitivity to split randomness, not true sampling variability, and likely understates real-world variance."
+  },
+  "insample_classifier_comparison": {
+    "RandomForest(100,d15)": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "train_seconds": 0.22731490002479404,
+      "predict_latency_ms": 37.03938949998701
+    },
+    "SVM-RBF(C=10)": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "train_seconds": 0.06141880000359379,
+      "predict_latency_ms": 0.13007500005187467
+    },
+    "kNN(k=5)": {
+      "accuracy": 0.997624703087886,
+      "macro_f1": 0.9980562877759139,
+      "train_seconds": 0.002074600022751838,
+      "predict_latency_ms": 12.5071234999632
+    }
+  },
+  "insample_comparison_caveat": "Trained and evaluated on the SAME data (all of it) -- this measures whether each classifier's capacity suffices to fit the observed classes with this feature representation, not whether it generalizes to unseen signers/sessions. Latency is single-sample CPU inference on the development machine (see environment.processor), not the deployment device, and excludes MediaPipe detection time.",
+  "confusion_matrix_top_errors": [],
+  "feature_ablation": {
+    "full_132": {
+      "n_features": 132,
+      "accuracy": 1.0,
+      "macro_f1": 1.0
+    },
+    "no_relative_126": {
+      "n_features": 126,
+      "accuracy": 1.0,
+      "macro_f1": 1.0
+    },
+    "right_hand_only_63": {
+      "n_features": 63,
+      "accuracy": 0.9536817102137767,
+      "macro_f1": 0.9362101096234822
+    }
+  },
+  "feature_ablation_caveat": "In-sample fit only, same caveat as section 4."
+}

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ISL Recognition System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Socket.IO removed: the UI now uses plain HTTP polling, which avoids
+     Socket.IO/Engine.IO client-vs-server version mismatches entirely. -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- ═══ LOADING ═══ -->
+<div class="loading-screen" id="ls">
+  <div class="ld-logo">ISL</div>
+  <div class="ld-sub">Recognition System</div>
+  <div class="ld-bar"><div class="ld-fill"></div></div>
+  <div class="ld-sub" style="font-size:.62rem">Initializing MediaPipe &amp; Camera...</div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="logo">&#9670; ISL <em>RECOGNITION</em></div>
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('recognize')">RECOGNITION</button>
+    <button class="tab-btn"        onclick="switchTab('train')">TRAINER</button>
+  </nav>
+  <div class="hdr-end">
+    <div class="hdr-div"></div>
+    <select id="voice-sel" class="voice-sel" title="TTS Voice"><option value="-1">System Voice</option></select>
+    <div class="rate-wrap">
+      <span>SPEED</span>
+      <input type="range" id="tts-rate" min="0.5" max="2" step="0.1" value="1" oninput="onRateChange(this.value)">
+      <span id="rate-val">1.0×</span>
+    </div>
+    <div class="hdr-div"></div>
+    <label class="toggle-wrap" title="Speak each word as committed">
+      <span>AUTO&#8209;SPEAK</span>
+      <input type="checkbox" id="auto-spk" onchange="setAutoSpeak(this.checked)">
+      <div class="tgl-track"><div class="tgl-thumb"></div></div>
+    </label>
+    <div class="hdr-div"></div>
+    <div class="stat-pill">&#9670; <b id="sess-timer">00:00</b></div>
+    <div class="stat-pill">LETTERS <b id="stat-ltrs">0</b></div>
+    <div class="stat-pill">Model: <b id="class-count">—</b></div>
+    <button class="tab-btn" onclick="toggleSC()" title="Keyboard shortcuts">?</button>
+  </div>
+</header>
+
+<!-- ═══ RECOGNITION TAB ═══ -->
+<div class="tab-content active" id="recognize-tab">
+
+  <!-- Camera -->
+  <div class="glass-panel">
+    <div class="panel-hdr">LIVE SENSOR FEED</div>
+    <div class="video-wrap">
+      <img id="cv-rec" class="feed" alt="live feed">
+      <div class="hud">
+        <div class="hud-row">
+          <div class="hand-card">
+            <div class="hand-ind" id="lh-r"><div class="dot"></div>L HAND</div>
+            <div class="hand-ind" id="rh-r"><div class="dot"></div>R HAND</div>
+          </div>
+        </div>
+        <div class="hud-row btm" id="warn-r" style="display:none">
+          <div class="warn-badge" id="warn-txt-r"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recognition panel -->
+  <div class="glass-panel">
+    <div class="panel-hdr">RECOGNITION</div>
+
+    <div class="letter-box">
+      <div class="letter-char empty" id="letter">—</div>
+    </div>
+
+    <div class="rec-scroll">
+      <div class="metrics">
+        <div class="mrow">
+          <div class="mlabel">CONFIDENCE</div>
+          <div class="mbar"><div class="mfill amber" id="conf-bar"></div></div>
+          <div class="mval" id="conf-val">0%</div>
+        </div>
+        <div class="mrow">
+          <div class="mlabel">STABILITY</div>
+          <div class="mbar"><div class="mfill teal" id="stab-bar"></div></div>
+          <div class="mval" id="stab-val">0/8</div>
+        </div>
+      </div>
+
+      <div class="sparkline-wrap">
+        <div class="sp-lbl">CONFIDENCE HISTORY</div>
+        <canvas id="sparkline-canvas" height="28"></canvas>
+      </div>
+
+      <div class="word-sec">
+        <div class="sec-lbl">CURRENT WORD</div>
+        <div class="word-disp empty" id="word-disp">_</div>
+      </div>
+
+      <div class="text-sec">
+        <div class="sec-lbl">
+          YOUR SENTENCE
+          <button class="mini-copy" onclick="copyClip()" title="Copy sentence">⎘ COPY</button>
+        </div>
+        <div class="text-box empty" id="full-text-box">Sign letters to build your sentence — it appears here.</div>
+      </div>
+
+      <div class="sugs-sec">
+        <div class="sec-lbl">SUGGESTIONS <span style="opacity:.4;font-size:.55em">(1 / 2 / 3)</span></div>
+        <div class="sugs-list" id="sugs"></div>
+      </div>
+
+      <div class="quick-sec">
+        <div class="sec-lbl">QUICK PHRASES</div>
+        <div class="quick-pills">
+          <button class="qpill" onclick="quickPhrase('HELLO')">Hello</button>
+          <button class="qpill" onclick="quickPhrase('THANK YOU')">Thank You</button>
+          <button class="qpill" onclick="quickPhrase('HELP ME')">Help Me</button>
+          <button class="qpill" onclick="quickPhrase('I AM SORRY')">I Am Sorry</button>
+          <button class="qpill" onclick="quickPhrase('YES PLEASE')">Yes Please</button>
+          <button class="qpill" onclick="quickPhrase('NO THANK YOU')">No Thanks</button>
+          <button class="qpill" onclick="quickPhrase('GOOD')">Good</button>
+          <button class="qpill" onclick="quickPhrase('PLEASE WAIT')">Please Wait</button>
+        </div>
+      </div>
+    </div><!-- /rec-scroll -->
+
+    <div class="punct-row">
+      <button class="punct-btn" onclick="addPunct('.')">.</button>
+      <button class="punct-btn" onclick="addPunct(',')"><b>,</b></button>
+      <button class="punct-btn" onclick="addPunct('?')">?</button>
+      <button class="punct-btn" onclick="addPunct('!')">!</button>
+      <button class="punct-btn" onclick="addPunct('...')">…</button>
+    </div>
+
+    <div class="action-controls">
+      <div class="act-row act-row-2">
+        <button class="abtn" onclick="act('space')">⎵ SPACE <span class="kbd-hint">SPC</span></button>
+        <button class="abtn amber-btn" onclick="speakAndCommit()">&#9658; SPEAK <span class="kbd-hint">↵</span></button>
+      </div>
+      <div class="act-row act-row-3">
+        <button class="abtn" onclick="act('backspace')">⌫ LETTER <span class="kbd-hint">BSP</span></button>
+        <button class="abtn teal-btn" onclick="act('backspace_word')">⌫ WORD</button>
+        <button class="abtn danger" onclick="act('clear')">✕ CLEAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reference panel -->
+  <div class="glass-panel">
+    <div class="panel-hdr">ISL POSTURE REFERENCE</div>
+    <div class="ref-body" id="ref-body"></div>
+  </div>
+
+</div><!-- /recognize-tab -->
+
+<!-- ═══ TRAINER TAB ═══ -->
+<div class="tab-content" id="train-tab">
+
+  <!-- Camera -->
+  <div class="glass-panel">
+    <div class="panel-hdr">TRAINER VIEWER</div>
+    <div class="video-wrap">
+      <img id="cv-train" class="feed" alt="trainer feed">
+      <div class="hud">
+        <div class="hud-row">
+          <div class="hand-card">
+            <div class="hand-ind" id="lh-t"><div class="dot"></div>L HAND</div>
+            <div class="hand-ind" id="rh-t"><div class="dot"></div>R HAND</div>
+          </div>
+          <div class="rec-badge" id="rec-ind" style="display:none"><div class="pulse-dot"></div>REC</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column (scrollable) -->
+  <div class="train-right">
+
+    <!-- Resolution -->
+    <div class="glass-panel" style="flex-shrink:0">
+      <div class="panel-hdr">CAMERA RESOLUTION</div>
+      <div class="res-sec">
+        <div class="res-btns">
+          <button class="res-btn" id="res-hd" onclick="setResolution(1280,720)">
+            <span class="rtag">HD PREVIEW</span>1280 &times; 720
+          </button>
+          <button class="res-btn active tr-mode" id="res-tr" onclick="setResolution(640,480)">
+            <span class="rtag">FAST &#10003;</span>640 &times; 480
+          </button>
+        </div>
+        <div class="res-note" id="res-note">Current: <b>640&times;480</b> — Fast &amp; recommended (HD is heavier)</div>
+      </div>
+    </div>
+
+    <!-- Sign Recorder -->
+    <div class="glass-panel" style="flex-shrink:0">
+      <div class="panel-hdr">SIGN RECORDER</div>
+
+      <div class="class-pick">
+        <div class="sec-lbl">SIGNER / SESSION ID <span style="opacity:.5;font-weight:400">(for generalization evaluation)</span></div>
+        <div class="pick-wrap" style="margin-top:5px;display:flex;gap:8px">
+          <input type="text" class="pick-sel" id="signer-id-input" placeholder="signer id (e.g. s1)" style="flex:1" list="known-signers-list">
+          <datalist id="known-signers-list"></datalist>
+          <input type="text" class="pick-sel" id="session-id-input" placeholder="session id (e.g. 2026-08-09-am)" style="flex:1">
+        </div>
+        <div class="sec-lbl" id="signer-warn" style="display:none;color:var(--rose);margin-top:4px"></div>
+        <div class="sec-lbl" style="margin-top:10px">TARGET LABEL</div>
+        <div class="pick-wrap" style="margin-top:5px">
+          <select class="pick-sel" id="class-sel" onchange="onClassChange()"></select>
+        </div>
+      </div>
+
+      <div class="recorder-body">
+        <div class="sample-ctr">SAMPLES FOR CLASS<span id="target-cnt">0</span></div>
+
+        <div class="rec-btn-wrap">
+          <button class="record-btn" id="rec-btn" onclick="triggerAutoRecord()">
+            <span class="rbig">RECORD</span>
+            <span class="rsub">CLICK TO START</span>
+          </button>
+          <div class="countdown-ring" id="cd-ring">
+            <div class="countdown-num" id="cd-num">3</div>
+          </div>
+        </div>
+
+        <div class="rec-progress" id="rec-prog">
+          <div class="rec-prog-bar">
+            <div class="rec-prog-fill" id="rec-prog-fill"></div>
+            <div class="rec-prog-lbl" id="rec-prog-lbl">0.0s / 5.0s</div>
+          </div>
+          <div class="rec-prog-text" id="rec-prog-txt">Recording...</div>
+        </div>
+
+        <div class="rec-actions">
+          <button class="abtn danger" onclick="deleteLatestSample()">DELETE LATEST</button>
+          <button class="abtn danger" onclick="clearClassSamples()">CLEAR ALL</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Model Trainer -->
+    <div class="glass-panel" style="flex-shrink:0">
+      <div class="panel-hdr">MODEL TRAINER</div>
+      <div class="trainer-body">
+        <div class="status-box">
+          <div class="status-row"><span class="lbl">Status:</span><span class="val" id="train-stat">Idle</span></div>
+          <div class="status-row" id="acc-row" style="display:none"><span class="lbl">Burst-disjoint Accuracy:</span><span class="val"><b id="train-acc">—</b></span></div>
+          <div class="status-row" id="f1-row" style="display:none"><span class="lbl">Macro-F1:</span><span class="val"><b id="train-f1">—</b></span></div>
+          <div class="status-row"><span class="lbl">Model Features:</span><span class="val" id="model-feat">—</span></div>
+          <div class="status-row" id="eval-note-row" style="display:none;font-size:.62rem;opacity:.65;line-height:1.4"><span id="eval-note-txt"></span></div>
+        </div>
+        <button class="train-btn" id="train-btn" onclick="trainModel()">TRAIN MODEL</button>
+      </div>
+    </div>
+
+    <!-- Dataset Matrix -->
+    <div class="glass-panel" style="flex:1;min-height:200px">
+      <div class="panel-hdr">DATASET MATRIX</div>
+      <div class="stats-scroll">
+        <div class="stats-grid" id="stats-grid"></div>
+      </div>
+    </div>
+
+  </div><!-- /train-right -->
+</div><!-- /train-tab -->
+
+<!-- ═══ HISTORY PANEL ═══ -->
+<div class="history-panel" id="hist-panel">
+  <div class="hist-hdr">
+    <span>SPOKEN HISTORY</span>
+    <button class="hist-clr" onclick="clearHistory()">✕ CLEAR</button>
+  </div>
+  <div class="hist-list" id="hist-list"><div class="hist-empty">No sentences spoken yet.</div></div>
+</div>
+
+<!-- ═══ SENTENCE BAR ═══ -->
+<div class="sent-bar">
+  <div class="sent-lbl">SENTENCE</div>
+  <div class="sent-box empty" id="sent-txt">Sign letters to build a sentence...</div>
+  <div class="wave-wrap" id="wave-ind" style="display:none">
+    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+    <div class="wave-bar"></div><div class="wave-bar"></div>
+  </div>
+  <div class="sent-btns">
+    <button class="sbtn copy"     onclick="copyClip()">⎘ COPY</button>
+    <button class="sbtn"          onclick="exportSess()">&#8595; EXPORT</button>
+    <button class="sbtn hist-btn" id="hist-btn" onclick="toggleHist()">▤ HISTORY</button>
+    <button class="sbtn speak"    id="speak-btn" onclick="speakAndCommit()">&#9658; SPEAK ALL</button>
+    <button class="sbtn clear-btn" onclick="act('clear')">✕ CLEAR</button>
+  </div>
+</div>
+
+<!-- ═══ SHORTCUTS MODAL ═══ -->
+<div class="modal-bg" id="sc-modal" onclick="toggleSC()">
+  <div class="shortcuts-box" onclick="event.stopPropagation()">
+    <div class="sc-title">&#9670; Keyboard Shortcuts</div>
+    <table class="sc-table">
+      <tr><td>Space</td><td>Commit current word to sentence</td></tr>
+      <tr><td>Enter</td><td>Speak the full sentence</td></tr>
+      <tr><td>Backspace</td><td>Delete last letter (or last word)</td></tr>
+      <tr><td>1 / 2 / 3</td><td>Accept word suggestion</td></tr>
+      <tr><td>R (hold)</td><td>Manual record in Trainer (fallback)</td></tr>
+      <tr><td>?</td><td>Toggle this help overlay</td></tr>
+    </table>
+    <button class="sc-close" onclick="toggleSC()">&#215; CLOSE</button>
+  </div>
+</div>
+
+<!-- Confetti canvas -->
+<canvas id="conf-cv"></canvas>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
