@@ -19,10 +19,15 @@ Camera → MediaPipe HandLandmarker → One-Euro filter → classifier + overlay
 
 ## File ownership — read this before changing anything
 
+**Default is deny, not allow.** Only the frontend row below is editable.
+Everything else in the repo is backend/data/tooling and is off-limits, even
+files not explicitly named in the backend row — that list is examples, not
+the full set.
+
 | Owns | Files | Rule |
 |---|---|---|
-| **Backend** | `isl_main.py`, `train_model.py`, `evaluate.py`, `isl_model.pkl`, `labels.pkl`, `isl_dataset.csv`, `hand_landmarker.task` | Do not modify. This is tuned, working hand-tracking/ML code. If a frontend feature needs new data from the backend, add a new field to an existing response — never rename/remove an existing one — and flag it rather than editing `isl_main.py` directly. |
-| **Frontend** | `templates/index.html`, `static/css/style.css`, `static/js/app.js` | Safe to redesign freely — layout, styling, UX, all of it — as long as it keeps calling the API contract below with the same URLs, methods, and field names. |
+| **Backend** | `isl_main.py`, `train_model.py`, `evaluate.py`, `fix_dataset.py`, `inspect_models.py`, `process_images.py`, `test_camera.py`, `isl_model.pkl`, `labels.pkl`, `isl_dataset.csv`, `isl_model_one_hand.pkl`, `labels_one_hand.pkl`, `isl_dataset_one_hand.csv`, `hand_landmarker.task`, `start.bat`, `sp_asep.pdf`, `docs/`, `paper/`, `results/`, `requirements.txt`, `.gitignore`, plus this README and `AGENTS.md` — **and anything else not listed in the Frontend row** | Do not modify. This is tuned, working hand-tracking/ML code plus supporting data/docs. If a frontend feature needs new data from the backend, add a new field to an existing response — never rename/remove an existing one — and flag it rather than editing `isl_main.py` directly. |
+| **Frontend** | `templates/index.html`, `static/css/style.css`, `static/js/app.js` (and new frontend files added alongside them) | Safe to redesign freely — layout, styling, UX, all of it — as long as it keeps calling the API contract below with the same URLs, methods, and field names. |
 
 If you (or an agent) want to introduce a frontend build step or framework:
 it still has to end up served by, or proxied to, this same Flask process —

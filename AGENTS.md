@@ -8,13 +8,22 @@ server.
 
 ## Rules
 
-1. Never modify `isl_main.py`, `train_model.py`, `evaluate.py`,
-   `isl_model.pkl`, `labels.pkl`, `isl_dataset.csv`, or `hand_landmarker.task`.
-   These are backend files with a deliberately tuned hand-tracking pipeline
-   (One-Euro filter, MediaPipe confidence thresholds) — off limits.
+1. **Default is deny, not allow.** The only files you may edit are
+   `templates/index.html`, `static/css/style.css`, `static/js/app.js`, and
+   new frontend files you add alongside them. If a file isn't one of those,
+   don't modify, move, rename, or delete it — even if it isn't explicitly
+   named below. Don't treat rule 2's list as exhaustive; treat it as
+   examples of what rule 1 already covers.
 
-2. Only edit `templates/index.html`, `static/css/style.css`,
-   `static/js/app.js`, or new frontend files you add alongside them.
+2. This currently includes (non-exhaustive): `isl_main.py`, `train_model.py`,
+   `evaluate.py`, `fix_dataset.py`, `inspect_models.py`, `process_images.py`,
+   `test_camera.py`, `isl_model.pkl`, `labels.pkl`, `isl_dataset.csv`,
+   `isl_model_one_hand.pkl`, `labels_one_hand.pkl`, `isl_dataset_one_hand.csv`,
+   `hand_landmarker.task`, `start.bat`, `sp_asep.pdf`, everything under
+   `docs/`, `paper/`, and `results/`, plus `requirements.txt`, `.gitignore`,
+   `README.md`, and this file. These are backend/data/tooling files,
+   including a deliberately tuned hand-tracking pipeline (One-Euro filter,
+   MediaPipe confidence thresholds) — off limits.
 
 3. Every network call the frontend makes must keep using the exact endpoint
    paths, HTTP methods, and JSON field names documented in README.md's API
