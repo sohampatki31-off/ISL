@@ -317,13 +317,25 @@ class OneEuroFilter:
 
 _landmark_filters = {}   # hand_type ('Left'/'Right') -> OneEuroFilter
 
+# Detection runs on the horizontally-flipped (mirror/selfie-view) frame from
+# camera_loop, not the raw sensor frame. Mirroring a hand image is exactly
+# what turns a right hand into a left hand visually, so MediaPipe's
+# handedness call comes back inverted relative to the signer's actual hand
+# — and every landmark's x is mirrored (1 - true_x) too. Both are corrected
+# here: swap the label back, and un-mirror x, so hand_type and coordinates
+# match the signer's true anatomy and line up with the Kaggle-imported
+# training rows (extracted from un-mirrored photos, never flipped).
+_HANDEDNESS_UNMIRROR = {'Left': 'Right', 'Right': 'Left'}
+
 def _raw_hand_coords(result):
-    """hand_type -> raw (21,3) normalized landmark array for this frame."""
+    """hand_type -> raw (21,3) normalized landmark array for this frame,
+    corrected to the signer's true handedness/orientation (see comment
+    above _HANDEDNESS_UNMIRROR)."""
     out = {}
     if result.hand_landmarks and result.handedness:
         for landmarks, handedness_list in zip(result.hand_landmarks, result.handedness):
-            hand_type = handedness_list[0].category_name
-            out[hand_type] = np.array([[lm.x, lm.y, lm.z] for lm in landmarks])
+            hand_type = _HANDEDNESS_UNMIRROR[handedness_list[0].category_name]
+            out[hand_type] = np.array([[1.0 - lm.x, lm.y, lm.z] for lm in landmarks])
     return out
 
 def smooth_hands(raw_hands, t):
@@ -379,7 +391,9 @@ def draw_landmarks(frame, hands):
     current_hands = set(hands.keys())
     for hand_type, coords in hands.items():
         _hand_loss_grace[hand_type] = HAND_LOSS_GRACE_FRAMES
-        pts = [[coords[i][0] * w, coords[i][1] * h] for i in range(len(coords))]
+        # coords.x is true-orientation (see _HANDEDNESS_UNMIRROR); frame is
+        # the mirrored display feed, so mirror x back just for drawing.
+        pts = [[(1.0 - coords[i][0]) * w, coords[i][1] * h] for i in range(len(coords))]
         if hand_type in smoothed_landmarks:
             for i in range(len(pts)):
                 pts[i][0] = alpha * pts[i][0] + (1-alpha) * smoothed_landmarks[hand_type][i][0]
