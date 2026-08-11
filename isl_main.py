@@ -226,7 +226,13 @@ cam = {
 cam_lock = threading.Lock()
 
 # ── Runtime resolution control ─────────────────────────────────────
-_res = {"width": 640, "height": 480, "pending": False}
+# Defaults to HD: at 640x480, DETECT_MAX_DIM's downscale is a no-op, so the
+# detector was seeing the same pixel budget either way. HD + a raised
+# DETECT_MAX_DIM actually gives MediaPipe more detail to separate two
+# hands that are close together (still capped, so it doesn't scale all the
+# way to full 1280 — see DETECT_MAX_DIM's own comment for the latency
+# tradeoff that caps it there).
+_res = {"width": 1280, "height": 720, "pending": False}
 
 FULL_WORD_GESTURES = {
     'LOVE','HELLO','THANKYOU','HELP','SORRY','YES','NO','GOOD','PLEASE'
@@ -468,8 +474,12 @@ def _put_drop(q, item):
 # Detection only needs to see hands well enough to place normalized
 # landmarks (0..1 regardless of input size) — shrinking the frame we feed
 # MediaPipe cuts detector latency a lot at 1280x720 without touching the
-# resolution actually recorded/displayed. Left alone at/under 640 wide.
-DETECT_MAX_DIM = 640
+# resolution actually recorded/displayed. Left alone at/under 960 wide.
+# Raised from 640: at 640 this was a no-op at the (then-)default 640x480
+# capture, so the detector never actually got more pixels to separate two
+# close/overlapping hands with. 960 gives it real extra detail at the
+# 1280x720 default while still capping cost well under full resolution.
+DETECT_MAX_DIM = 960
 def _downscale_for_detect(frame):
     h, w = frame.shape[:2]
     longest = max(h, w)
