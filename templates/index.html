@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ISL Recognition System</title>
+<meta name="description" content="Real-time Indian Sign Language recognition system with hand tracking, word formation, and model training.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -12,6 +13,12 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+
+<!-- ═══ OFFLINE BANNER ═══ -->
+<div class="offline-banner" id="offline-ban">
+  <div class="offline-icon">&#9888;</div>
+  <div class="offline-txt">Connection to server lost. Retrying...</div>
+</div>
 
 <!-- ═══ LOADING ═══ -->
 <div class="loading-screen" id="ls">
@@ -24,9 +31,11 @@
 <!-- ═══ HEADER ═══ -->
 <header>
   <div class="logo">&#9670; ISL <em>RECOGNITION</em></div>
-  <nav class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('recognize')">RECOGNITION</button>
-    <button class="tab-btn"        onclick="switchTab('train')">TRAINER</button>
+  <nav class="page-nav">
+    <button class="page-btn active" id="nav-recognize" data-accent="amber"  onclick="goPage('recognize')">&#9670; DETECT</button>
+    <button class="page-btn"        id="nav-pipeline"  data-accent="violet" onclick="goPage('pipeline')">&#9670; HOW IT WORKS</button>
+    <button class="page-btn"        id="nav-reference" data-accent="teal"   onclick="goPage('reference')">&#9670; HAND SIGNS</button>
+    <button class="page-btn"        id="nav-trainer"   data-accent="cyan"   onclick="goPage('trainer')">&#9670; TRAINER</button>
   </nav>
   <div class="hdr-end">
     <div class="hdr-div"></div>
@@ -50,14 +59,20 @@
   </div>
 </header>
 
-<!-- ═══ RECOGNITION TAB ═══ -->
-<div class="tab-content active" id="recognize-tab">
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--   PAGE 1 — RECOGNITION                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page active" id="page-recognize">
 
-  <!-- Camera -->
+  <!-- Camera feed -->
   <div class="glass-panel">
     <div class="panel-hdr">LIVE SENSOR FEED</div>
     <div class="video-wrap">
       <img id="cv-rec" class="feed" alt="live feed">
+      <div class="video-error-overlay" id="video-err-rec" style="display:none">
+        <div class="err-icon">📷</div>
+        <div class="err-txt">Video stream disconnected. Checking camera status...</div>
+      </div>
       <div class="hud">
         <div class="hud-row">
           <div class="hand-card">
@@ -74,7 +89,8 @@
 
   <!-- Recognition panel -->
   <div class="glass-panel">
-    <div class="panel-hdr">RECOGNITION</div>
+    <div class="panel-hdr">DETECTION WORKSPACE</div>
+    <div class="subsection-hdr">SIGN DETECTOR</div>
 
     <div class="letter-box">
       <div class="letter-char empty" id="letter">—</div>
@@ -98,6 +114,8 @@
         <div class="sp-lbl">CONFIDENCE HISTORY</div>
         <canvas id="sparkline-canvas" height="28"></canvas>
       </div>
+
+      <div class="subsection-hdr creator">SENTENCE CREATOR</div>
 
       <div class="word-sec">
         <div class="sec-lbl">CURRENT WORD</div>
@@ -153,22 +171,180 @@
     </div>
   </div>
 
-  <!-- Reference panel -->
-  <div class="glass-panel">
-    <div class="panel-hdr">ISL POSTURE REFERENCE</div>
-    <div class="ref-body" id="ref-body"></div>
+</section><!-- /page-recognize -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--   PAGE 2 — DETECTION PROGRAM DETAILS ("HOW IT WORKS")      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-pipeline">
+
+  <div class="pipe-hero">
+    <h1 class="pipe-page-title">How Detection Works</h1>
+    <p class="pipe-page-sub">From camera pixels to a spoken sentence — the stages the video feed passes through on every frame, and the model behind the classifier on Page 1.</p>
   </div>
 
-</div><!-- /recognize-tab -->
+  <div class="pipe-body">
+    <div>
+      <div class="pipe-section-lbl">DETECTION PIPELINE</div>
+      <div class="pipe-flow">
+        <div class="pipe-card" data-accent="amber">
+          <div class="pipe-n">01</div>
+          <div class="pipe-icon">📷</div>
+          <div class="pipe-title">Camera Input</div>
+          <div class="pipe-desc">Live video frames captured from the webcam feed.</div>
+          <div class="pipe-spec">MJPEG stream</div>
+        </div>
+        <div class="pipe-arrow"></div>
+        <div class="pipe-card" data-accent="teal">
+          <div class="pipe-n">02</div>
+          <div class="pipe-icon">🖐️</div>
+          <div class="pipe-title">Hand Landmark Detection</div>
+          <div class="pipe-desc">MediaPipe HandLandmarker locates up to 2 hands, 21 landmarks each.</div>
+          <div class="pipe-spec">MediaPipe Tasks</div>
+        </div>
+        <div class="pipe-arrow"></div>
+        <div class="pipe-card" data-accent="violet">
+          <div class="pipe-n">03</div>
+          <div class="pipe-icon">〰️</div>
+          <div class="pipe-title">One-Euro Smoothing</div>
+          <div class="pipe-desc">Per-landmark filter removes jitter while keeping fast motion responsive.</div>
+          <div class="pipe-spec">β = 12.0</div>
+        </div>
+        <div class="pipe-arrow"></div>
+        <div class="pipe-card" data-accent="cyan">
+          <div class="pipe-n">04</div>
+          <div class="pipe-icon">🧮</div>
+          <div class="pipe-title">Feature Extraction</div>
+          <div class="pipe-desc">Smoothed landmarks become a fixed-length numeric vector for the classifier.</div>
+          <div class="pipe-spec">132 features</div>
+        </div>
+        <div class="pipe-arrow"></div>
+        <div class="pipe-card" data-accent="amber">
+          <div class="pipe-n">05</div>
+          <div class="pipe-icon">🌲</div>
+          <div class="pipe-title">RandomForest Classifier</div>
+          <div class="pipe-desc">Predicts the most likely letter/sign and a confidence score.</div>
+          <div class="pipe-spec">200 trees</div>
+        </div>
+        <div class="pipe-arrow"></div>
+        <div class="pipe-card" data-accent="rose">
+          <div class="pipe-n">06</div>
+          <div class="pipe-icon">⏱️</div>
+          <div class="pipe-title">Stability Gate</div>
+          <div class="pipe-desc">A sign must hold steady for several consecutive frames before it locks in — filters out flicker between gestures.</div>
+          <div class="pipe-spec">8-frame debounce</div>
+        </div>
+        <div class="pipe-arrow"></div>
+        <div class="pipe-card" data-accent="teal">
+          <div class="pipe-n">07</div>
+          <div class="pipe-icon">✍️</div>
+          <div class="pipe-title">Word / Sentence Composer</div>
+          <div class="pipe-desc">Locked letters build a word; word-gestures and suggestions build the full sentence.</div>
+          <div class="pipe-spec">Live on Page 1</div>
+        </div>
+        <div class="pipe-arrow"></div>
+        <div class="pipe-card" data-accent="violet">
+          <div class="pipe-n">08</div>
+          <div class="pipe-icon">🔊</div>
+          <div class="pipe-title">Speech Output</div>
+          <div class="pipe-desc">The finished sentence is read aloud via the browser's speech synthesis.</div>
+          <div class="pipe-spec">Web Speech API</div>
+        </div>
+      </div>
+    </div>
 
-<!-- ═══ TRAINER TAB ═══ -->
-<div class="tab-content" id="train-tab">
+    <div>
+      <div class="pipe-section-lbl">LIVE MODEL &amp; SYSTEM STATS</div>
+      <div class="pipe-stats-grid">
+        <div class="pipe-stat-card">
+          <div class="psc-lbl">MODEL TYPE</div>
+          <div class="psc-val">RandomForest</div>
+        </div>
+        <div class="pipe-stat-card">
+          <div class="psc-lbl">INPUT FEATURES</div>
+          <div class="psc-val" id="pipe-features">—</div>
+        </div>
+        <div class="pipe-stat-card">
+          <div class="psc-lbl">KNOWN CLASSES</div>
+          <div class="psc-val" id="pipe-classes">—</div>
+        </div>
+        <div class="pipe-stat-card">
+          <div class="psc-lbl">TRAINING SAMPLES</div>
+          <div class="psc-val" id="pipe-samples">—</div>
+        </div>
+        <div class="pipe-stat-card" id="pipe-acc-card">
+          <div class="psc-lbl">HELD-OUT ACCURACY</div>
+          <div class="psc-val" id="pipe-accuracy">—</div>
+        </div>
+        <div class="pipe-stat-card" id="pipe-cam-card">
+          <div class="psc-lbl">CAMERA STATUS</div>
+          <div class="psc-val" id="pipe-camstatus">—</div>
+        </div>
+      </div>
+      <div class="pipe-note" style="margin-top:12px">
+        <b>Why the accuracy number can be trusted:</b> held-out accuracy is measured on a
+        <em>burst-disjoint</em> split — entire recording sessions are held out together, rather
+        than randomly splitting individual frames, since a random split would leak
+        near-duplicate frames from the same press-and-hold recording across train/test and
+        report an inflated number.
+      </div>
+    </div>
+  </div>
+
+</section><!-- /page-pipeline -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--   PAGE 3 — HAND SIGNS REFERENCE                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-reference">
+
+  <div class="ref-page-hero">
+    <div class="ref-hero-left">
+      <h1 class="ref-page-title">ISL Hand Sign Reference</h1>
+      <p class="ref-page-sub">Start signing — the matching card highlights live as the model detects your gesture.</p>
+    </div>
+    <div class="ref-hero-right">
+      <div class="ref-live-card">
+        <div class="ref-live-label">NOW DETECTING</div>
+        <div class="ref-live-letter" id="ref-live-letter">—</div>
+        <div class="ref-live-badges">
+          <div class="hand-ind" id="lh-ref"><div class="dot"></div>L HAND</div>
+          <div class="hand-ind" id="rh-ref"><div class="dot"></div>R HAND</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ref-filter-bar">
+    <div class="ref-tabs">
+      <button class="ref-tab-btn active" data-group="all"     onclick="refSetGroup('all')">ALL</button>
+      <button class="ref-tab-btn"        data-group="letters" onclick="refSetGroup('letters')">LETTERS</button>
+      <button class="ref-tab-btn"        data-group="phrases" onclick="refSetGroup('phrases')">PHRASES</button>
+    </div>
+    <div class="ref-search-wrap">
+      <input type="text" class="ref-search" id="ref-search" placeholder="Search a sign..." oninput="refApplyFilter()">
+    </div>
+    <div class="ref-count" id="ref-count"></div>
+  </div>
+
+  <div class="ref-page-body" id="ref-body"></div>
+
+</section><!-- /page-reference -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--   PAGE 4 — TRAINER                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-trainer">
 
   <!-- Camera -->
   <div class="glass-panel">
     <div class="panel-hdr">TRAINER VIEWER</div>
     <div class="video-wrap">
       <img id="cv-train" class="feed" alt="trainer feed">
+      <div class="video-error-overlay" id="video-err-train" style="display:none">
+        <div class="err-icon">📷</div>
+        <div class="err-txt">Video stream disconnected. Checking camera status...</div>
+      </div>
       <div class="hud">
         <div class="hud-row">
           <div class="hand-card">
@@ -270,7 +446,7 @@
     </div>
 
   </div><!-- /train-right -->
-</div><!-- /train-tab -->
+</section><!-- /page-trainer -->
 
 <!-- ═══ HISTORY PANEL ═══ -->
 <div class="history-panel" id="hist-panel">
@@ -290,10 +466,10 @@
     <div class="wave-bar"></div><div class="wave-bar"></div>
   </div>
   <div class="sent-btns">
-    <button class="sbtn copy"     onclick="copyClip()">⎘ COPY</button>
-    <button class="sbtn"          onclick="exportSess()">&#8595; EXPORT</button>
-    <button class="sbtn hist-btn" id="hist-btn" onclick="toggleHist()">▤ HISTORY</button>
-    <button class="sbtn speak"    id="speak-btn" onclick="speakAndCommit()">&#9658; SPEAK ALL</button>
+    <button class="sbtn copy"      onclick="copyClip()">⎘ COPY</button>
+    <button class="sbtn"           onclick="exportSess()">&#8595; EXPORT</button>
+    <button class="sbtn hist-btn"  id="hist-btn" onclick="toggleHist()">▤ HISTORY</button>
+    <button class="sbtn speak"     id="speak-btn" onclick="speakAndCommit()">&#9658; SPEAK ALL</button>
     <button class="sbtn clear-btn" onclick="act('clear')">✕ CLEAR</button>
   </div>
 </div>

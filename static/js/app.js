@@ -44,17 +44,43 @@ const WORD_GESTS = new Set(GESTS.map(g=>g.l));
 // ── Build reference panel ─────────────────────────────────────
 (function(){
   const rb = document.getElementById('ref-body');
-  let h = '<div class="sec-lbl">A – Z FINGERSPELLING</div><div class="ref-grid">';
+  let h = '<div class="ref-section" data-group="letters"><div class="sec-lbl">A – Z FINGERSPELLING</div><div class="ref-grid">';
   ALPHA.forEach(a=>{
-    h+=`<div class="ref-card" id="card-${a.l}" title="${a.d}"><div class="char">${a.l}</div><div class="emoji">${a.e}</div><div class="desc">${a.d}</div></div>`;
+    h+=`<div class="ref-card" id="card-${a.l}" data-search="${(a.l+' '+a.d).toLowerCase()}" title="${a.d}"><div class="char">${a.l}</div><div class="emoji">${a.e}</div><div class="desc">${a.d}</div></div>`;
   });
-  h+='</div><div class="sec-lbl" style="margin-top:12px">SPECIAL GESTURES</div><div class="gest-grid">';
+  h+='</div></div><div class="ref-section" data-group="phrases"><div class="sec-lbl" style="margin-top:12px">SPECIAL GESTURES</div><div class="gest-grid">';
   GESTS.forEach(g=>{
-    h+=`<div class="gest-card" id="card-${g.l}" title="${g.d}"><div class="emoji">${g.e}</div><div class="label">${g.l}</div><div class="desc">${g.d}</div></div>`;
+    h+=`<div class="gest-card" id="card-${g.l}" data-search="${(g.l+' '+g.d).toLowerCase()}" title="${g.d}"><div class="emoji">${g.e}</div><div class="label">${g.l}</div><div class="desc">${g.d}</div></div>`;
   });
-  h+='</div>';
+  h+='</div></div>';
   rb.innerHTML=h;
+  document.getElementById('ref-count').textContent = ALL_CLASSES.length + ' signs';
 })();
+
+// ── Reference page filter/search (client-side only; never removes
+// card-<ID> nodes, since the live-detection highlighter depends on them) ──
+let _refGroup = 'all';
+function refSetGroup(g){
+  _refGroup = g;
+  document.querySelectorAll('.ref-tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.group===g));
+  document.querySelectorAll('.ref-section').forEach(s=>{
+    s.classList.toggle('hidden', g!=='all' && s.dataset.group!==g);
+  });
+  refApplyFilter();
+}
+function refApplyFilter(){
+  const q = (document.getElementById('ref-search').value||'').trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll('.ref-section').forEach(s=>{
+    if(_refGroup!=='all' && s.dataset.group!==_refGroup) return;
+    s.querySelectorAll('.ref-card,.gest-card').forEach(c=>{
+      const match = !q || (c.dataset.search||'').includes(q);
+      c.classList.toggle('hidden', !match);
+      if(match) shown++;
+    });
+  });
+  document.getElementById('ref-count').textContent = shown + (shown===1?' sign':' signs');
+}
 
 // ── Build trainer class dropdown ──────────────────────────────
 (function(){
@@ -65,16 +91,15 @@ const WORD_GESTS = new Set(GESTS.map(g=>g.l));
   });
 })();
 
-// ── Tab switching ─────────────────────────────────────────────
+// ── Page switching (4 pages: recognize / pipeline / reference / trainer) ──
 let activeTab = 'recognize';
-function switchTab(id){
+function goPage(id){
   activeTab = id;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  document.querySelector(`.tab-btn[onclick="switchTab('${id}')"]`).classList.add('active');
-  document.getElementById(id+'-tab').classList.add('active');
+  document.querySelectorAll('.page-btn').forEach(b=>b.classList.toggle('active', b.id==='nav-'+id));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+id));
   setActiveFeed(id);
-  if(id==='train') fetchStats();
+  if(id==='trainer'){ fetchStats(); }
+  if(id==='pipeline'){ fetchStats(); fetchVersionInfo(); }
 }
 
 // ── Loading screen helpers (registered BEFORE socket init so they always fire) ──
@@ -92,19 +117,29 @@ const cvRec = document.getElementById('cv-rec');
 const cvTrn = document.getElementById('cv-train');
 
 function _openFeed(img){
-  img.onload  = _hideLS;
+  const overlayId = (img === cvRec) ? 'video-err-rec' : 'video-err-train';
+  const overlay = document.getElementById(overlayId);
+  img.onload  = () => {
+    _hideLS();
+    if(overlay) overlay.style.display = 'none';
+  };
   img.onerror = ()=>{
-    setTimeout(()=>{ if(img.src.indexOf('/video_feed')!==-1) img.src = '/video_feed?_=' + Date.now(); }, 800);
+    if(overlay) overlay.style.display = 'flex';
+    setTimeout(()=>{ if(img.src && img.src.indexOf('/video_feed')!==-1) img.src = '/video_feed?_=' + Date.now(); }, 1500);
   };
   img.src = '/video_feed?_=' + Date.now();
 }
 function _closeFeed(img){
   img.onerror = null;
+  img.onload = null;
   img.removeAttribute('src');
+  const overlayId = (img === cvRec) ? 'video-err-rec' : 'video-err-train';
+  const overlay = document.getElementById(overlayId);
+  if(overlay) overlay.style.display = 'none';
 }
 
 function setActiveFeed(id){
-  const next = (id==='train') ? cvTrn : cvRec;
+  const next = (id==='trainer') ? cvTrn : cvRec;
   const prev = (next===cvTrn) ? cvRec : cvTrn;
   if(prev.src) _closeFeed(prev);
   _openFeed(next);
@@ -117,8 +152,10 @@ let prevLetter='', flashTmr, prevCard=null, _lastTtsId=0, _ttsInit=false;
 
 let _prevState = {};   // cache for change-detection to avoid per-poll DOM thrash
 let currentFullText = '';
+let _latestState = null;
 
 function applyState(d){
+  _latestState = d;
   // Speak any new utterance (works for manual actions and auto-speak).
   if(d.tts_id !== undefined){
     if(!_ttsInit){ _lastTtsId = d.tts_id; _ttsInit = true; }  // don't replay backlog on load
@@ -133,6 +170,8 @@ function applyState(d){
     const wb=document.getElementById('warn-r');
     if(!is2h){wb.style.display='flex';document.getElementById('warn-txt-r').textContent='⚠ Old model — retrain with 2-handed data';}
     else wb.style.display='none';
+    const pipeFeat=document.getElementById('pipe-features');
+    if(pipeFeat) pipeFeat.textContent=d.model_features_loaded;
   }
 
   // Hand indicators (only on change)
@@ -224,12 +263,39 @@ function applyState(d){
   _prevState.total_letters=d.total_letters;
 }
 
+function setOfflineStatus(isOffline) {
+  const ban = document.getElementById('offline-ban');
+  if (!ban) return;
+  if (isOffline) {
+    if (!ban.classList.contains('active')) {
+      ban.classList.add('active');
+    }
+  } else {
+    if (ban.classList.contains('active')) {
+      ban.classList.remove('active');
+    }
+  }
+}
+
+let pollDelay = 120;
+const MIN_POLL_DELAY = 120;
+const MAX_POLL_DELAY = 5000;
+
 async function pollState(){
   try{
     const r=await fetch('/state',{cache:'no-store'});
-    applyState(await r.json());
-  }catch(e){ /* transient; keep polling */ }
-  setTimeout(pollState, 120);   // ~8 polls/sec
+    if(r.ok){
+      applyState(await r.json());
+      pollDelay = MIN_POLL_DELAY;
+      if(typeof setOfflineStatus === 'function') setOfflineStatus(false);
+    } else {
+      throw new Error("HTTP error " + r.status);
+    }
+  }catch(e){
+    pollDelay = Math.min(pollDelay * 1.5, MAX_POLL_DELAY);
+    if(typeof setOfflineStatus === 'function') setOfflineStatus(true);
+  }
+  setTimeout(pollState, pollDelay);
 }
 pollState();
 
@@ -246,13 +312,16 @@ function applyTraining(data){
     se.innerHTML='<span style="color:var(--emerald)">Success — model loaded</span>';
     const f1Row=document.getElementById('f1-row');
     const noteRow=document.getElementById('eval-note-row');
+    const pipeAcc=document.getElementById('pipe-accuracy');
     if(data.macro_f1!=null){
       if(ai) ai.style.display='flex';
       document.getElementById('train-acc').textContent=(data.accuracy*100).toFixed(1)+'%';
       if(f1Row){ f1Row.style.display='flex'; document.getElementById('train-f1').textContent=data.macro_f1.toFixed(3); }
+      if(pipeAcc) pipeAcc.innerHTML=(data.accuracy*100).toFixed(1)+'% <b style="font-size:.6em">'+data.macro_f1.toFixed(2)+' F1</b>';
     } else {
       if(ai) ai.style.display='none';
       if(f1Row) f1Row.style.display='none';
+      if(pipeAcc) pipeAcc.textContent='not yet measured';
     }
     if(noteRow && data.eval_note){ noteRow.style.display='flex'; document.getElementById('eval-note-txt').textContent=data.eval_note; }
     else if(noteRow){ noteRow.style.display='none'; }
@@ -289,10 +358,12 @@ function drawSpark(v){
   if(!_spCtx)return;
   _spData.push(v); if(_spData.length>50)_spData.shift();
   const W=_spCv.offsetWidth||200,H=28;
-  _spCv.width=W; _spCv.height=H;
+  if(_spCv.width !== W || _spCv.height !== H){
+    _spCv.width=W; _spCv.height=H;
+  }
   _spCtx.clearRect(0,0,W,H);
-  const col=v>0.7?'#22C55E':v>0.4?'#E8A225':'#F43F5E';
-  const fill=v>0.7?'rgba(34,197,94,.1)':v>0.4?'rgba(232,162,37,.1)':'rgba(244,63,94,.1)';
+  const col=v>0.7?'#A6C98B':v>0.4?'#8BAE66':'#C05A34';
+  const fill=v>0.7?'rgba(166,201,139,.12)':v>0.4?'rgba(139,174,102,.12)':'rgba(192,90,52,.12)';
   const n=_spData.length;
   _spCtx.beginPath();
   _spData.forEach((p,i)=>{const x=i/(n-1||1)*W,y=H-p*(H-3);i===0?_spCtx.moveTo(x,y):_spCtx.lineTo(x,y);});
@@ -301,13 +372,13 @@ function drawSpark(v){
   _spCtx.beginPath();
   _spData.forEach((p,i)=>{const x=i/(n-1||1)*W,y=H-p*(H-3);i===0?_spCtx.moveTo(x,y):_spCtx.lineTo(x,y);});
   _spCtx.strokeStyle=col; _spCtx.lineWidth=1.5; _spCtx.stroke();
-  _spCtx.setLineDash([2,3]); _spCtx.strokeStyle='rgba(255,255,255,.1)'; _spCtx.lineWidth=.7;
+  _spCtx.setLineDash([2,3]); _spCtx.strokeStyle='rgba(235,213,171,.12)'; _spCtx.lineWidth=.7;
   _spCtx.beginPath(); _spCtx.moveTo(0,H*.5); _spCtx.lineTo(W,H*.5); _spCtx.stroke();
   _spCtx.setLineDash([]);
 }
 
 // ── Web Speech API ────────────────────────────────────────────
-let ttsVoices=[], ttsRate=1.0;
+let ttsVoices=[], ttsRate=parseFloat(localStorage.getItem('isl_tts_rate') || '1.0');
 function loadVoices(){
   ttsVoices=window.speechSynthesis.getVoices();
   const sel=document.getElementById('voice-sel');
@@ -318,10 +389,33 @@ function loadVoices(){
   if(en.length){h+='<optgroup label="English">';en.forEach(v=>{h+=`<option value="${ttsVoices.indexOf(v)}">${v.name}</option>`;});h+='</optgroup>';}
   if(ot.length){h+='<optgroup label="Other">';ot.forEach(v=>{h+=`<option value="${ttsVoices.indexOf(v)}">${v.name} (${v.lang})</option>`;});h+='</optgroup>';}
   sel.innerHTML=h;
+  const savedVoice = localStorage.getItem('isl_tts_voice_index');
+  if(savedVoice !== null && sel.querySelector(`option[value="${savedVoice}"]`)) {
+    sel.value = savedVoice;
+  }
 }
 if('speechSynthesis' in window){window.speechSynthesis.onvoiceschanged=loadVoices; loadVoices();}
 
-function onRateChange(v){ttsRate=parseFloat(v); document.getElementById('rate-val').textContent=parseFloat(v).toFixed(1)+'×';}
+// Persist voice selection changes
+document.getElementById('voice-sel')?.addEventListener('change', (e) => {
+  localStorage.setItem('isl_tts_voice_index', e.target.value);
+});
+
+// Restore slider position and label on load
+(function(){
+  const rateSlider = document.getElementById('tts-rate');
+  if (rateSlider) {
+    rateSlider.value = ttsRate;
+    const rateVal = document.getElementById('rate-val');
+    if (rateVal) rateVal.textContent = ttsRate.toFixed(1) + '×';
+  }
+})();
+
+function onRateChange(v){
+  ttsRate=parseFloat(v);
+  document.getElementById('rate-val').textContent=parseFloat(v).toFixed(1)+'×';
+  localStorage.setItem('isl_tts_rate', v);
+}
 
 function speakText(text){
   if(!text||!('speechSynthesis' in window))return;
@@ -371,15 +465,77 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ── Auto-speak ────────────────────────────────────────────────
 async function setAutoSpeak(v){await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'auto_speak',value:v})});}
 
+// ── Optimistic Actions ────────────────────────────────────────
+function optimisticAct(action, extra) {
+  if (!_latestState) return;
+  let changed = false;
+  let fText = _latestState.full_text || "";
+  let cWord = _latestState.current_word || "";
+  let suggestions = _latestState.suggestions || [];
+
+  if (action === 'clear') {
+    _latestState.full_text = "";
+    _latestState.current_word = "";
+    _latestState.suggestions = [];
+    changed = true;
+  } else if (action === 'space') {
+    if (cWord) {
+      _latestState.full_text = (fText + " " + cWord).trim();
+      _latestState.current_word = "";
+      _latestState.suggestions = [];
+      changed = true;
+    }
+  } else if (action === 'backspace') {
+    if (cWord.length > 0) {
+      _latestState.current_word = cWord.slice(0, -1);
+      changed = true;
+    }
+  } else if (action === 'backspace_word') {
+    if (cWord) {
+      _latestState.current_word = "";
+      changed = true;
+    } else if (fText) {
+      let w = fText.trim().split(" ");
+      w.pop();
+      _latestState.full_text = w.join(" ");
+      changed = true;
+    }
+  } else if (action === 'punct') {
+    _latestState.full_text = (fText + extra).trim();
+    changed = true;
+  } else if (action === 'quick_phrase') {
+    _latestState.full_text = (fText + " " + extra).trim();
+    changed = true;
+  } else if (action === 'suggest') {
+    const idx = extra;
+    if (suggestions[idx]) {
+      _latestState.full_text = (fText + " " + suggestions[idx]).trim();
+      _latestState.current_word = "";
+      _latestState.suggestions = [];
+      changed = true;
+    }
+  }
+  if (changed) {
+    applyState(_latestState);
+  }
+}
+
 // ── Generic action ────────────────────────────────────────────
 async function act(action,index){
+  optimisticAct(action, index);
   const body={action}; if(index!==undefined)body.index=index;
   await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 }
 
 // ── Quick phrases / Punct ─────────────────────────────────────
-async function quickPhrase(t){await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'quick_phrase',text:t})});}
-async function addPunct(c){await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'punct',char:c})});}
+async function quickPhrase(t){
+  optimisticAct('quick_phrase', t);
+  await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'quick_phrase',text:t})});
+}
+async function addPunct(c){
+  optimisticAct('punct', c);
+  await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'punct',char:c})});
+}
 
 // ── Shortcuts modal ───────────────────────────────────────────
 function toggleSC(){document.getElementById('sc-modal').classList.toggle('open');}
@@ -395,9 +551,26 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='2'){act('suggest',1);}
   else if(e.key==='3'){act('suggest',2);}
   else if(e.key==='?'){toggleSC();}
-  else if((e.key==='r'||e.key==='R')&&activeTab==='train'&&!e.repeat&&!_recHK){_recHK=true;_manualStart();}
+  else if((e.key==='r'||e.key==='R')&&activeTab==='trainer'&&!e.repeat&&!_recHK){_recHK=true;_manualStart();}
 });
 document.addEventListener('keyup',e=>{if((e.key==='r'||e.key==='R')&&_recHK){_recHK=false;_manualStop();}});
+
+// ── Audio Feedback Generator ──────────────────────────────────
+function playBeep(freq, duration) {
+  if (!window.AudioContext && !window.webkitAudioContext) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) {}
+}
 
 // ── Countdown Auto-Record ─────────────────────────────────────
 let _cdTimer=null, _arTimer=null, _recActive=false;
@@ -423,15 +596,18 @@ async function triggerAutoRecord(){
   btn.querySelector('.rsub').textContent='CLICK TO CANCEL';
   let count=3;
   numEl.textContent=count;
+  playBeep(520, 0.06); // First tick tone
 
   _cdTimer=setInterval(async()=>{
     count--;
     if(count>0){
+      playBeep(520, 0.06); // Tick tone
       numEl.style.animation='none'; void numEl.offsetWidth; numEl.style.animation='cd-pop .85s ease-out';
       numEl.textContent=count;
     } else {
       clearInterval(_cdTimer); _cdTimer=null;
       ring.classList.remove('show');
+      playBeep(880, 0.2); // Start recording tone
       // Launch recording
       await _startRec();
       _recActive=true;
@@ -450,6 +626,7 @@ async function triggerAutoRecord(){
         if(elapsed>=dur){
           clearInterval(_arTimer); _arTimer=null; _recActive=false;
           await _stopRec(); resetRecUI();
+          playBeep(660, 0.15); // End recording tone
           showToast('Recording complete ✓');
         }
       },100);
@@ -554,8 +731,33 @@ async function fetchStats(){
       const n=counts[c]||0;
       return `<div class="sbadge ${n>0?'has':''}"><div class="sl">${c}</div><div class="sc">${n}</div></div>`;
     }).join('');
+
+    // Mirror into the pipeline page's live stats (elements only exist there; no-op elsewhere)
+    const totalSamples=Object.values(counts).reduce((a,b)=>a+b,0);
+    const classesWithData=Object.values(counts).filter(n=>n>0).length;
+    const pipeSamples=document.getElementById('pipe-samples');
+    const pipeClasses=document.getElementById('pipe-classes');
+    if(pipeSamples) pipeSamples.textContent=totalSamples.toLocaleString();
+    if(pipeClasses) pipeClasses.textContent=`${classesWithData} / ${ALL_CLASSES.length}`;
   }catch(e){console.error(e);}
 }
+
+// ── Version / system info (for the pipeline page's live stats) ─────────
+async function fetchVersionInfo(){
+  try{
+    const r=await fetch('/version',{cache:'no-store'});
+    const d=await r.json();
+    const camEl=document.getElementById('pipe-camstatus');
+    const camCard=document.getElementById('pipe-cam-card');
+    if(camEl){
+      const ok=d.camera_status==='ok';
+      camEl.textContent=d.camera_status||'unknown';
+      if(camCard) camCard.className='pipe-stat-card '+(ok?'ok':'warn');
+    }
+  }catch(e){ /* non-critical */ }
+}
+fetchVersionInfo();
+setInterval(fetchVersionInfo, 15000);
 function onClassChange(){fetchStats();}
 async function deleteLatestSample(){
   const cur=document.getElementById('class-sel').value;
@@ -588,7 +790,7 @@ let _cpieces=[];
 function launchConfetti(){
   if(!_ccv)return;
   const ctx=_ccv.getContext('2d');
-  const cols=['#E8A225','#00C4A7','#7C6FF7','#F43F5E','#22C55E','#F5C05A'];
+  const cols=['#8BAE66','#628141','#EBD5AB','#A6AB76','#A6C98B','#C05A34'];
   for(let i=0;i<90;i++){_cpieces.push({x:Math.random()*_ccv.width,y:-10,vx:(Math.random()-.5)*5,vy:Math.random()*3+2,w:Math.random()*9+4,h:Math.random()*6+3,color:cols[Math.floor(Math.random()*cols.length)],a:Math.random()*Math.PI*2,va:(Math.random()-.5)*.2,alpha:1});}
   (function step(){
     ctx.clearRect(0,0,_ccv.width,_ccv.height);
