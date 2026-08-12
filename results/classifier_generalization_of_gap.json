@@ -1,0 +1,20 @@
+{
+  "random_forest": {
+    "accuracy": 0.5039619651347068,
+    "macro_f1": 0.3120675063146931
+  },
+  "knn_k5": {
+    "accuracy": 0.4231378763866878,
+    "macro_f1": 0.25382174183189943
+  },
+  "svm_rbf": {
+    "accuracy": 0.5055467511885895,
+    "macro_f1": 0.3244693574356628,
+    "n_train": 6000
+  },
+  "mlp_128_64": {
+    "accuracy": 0.5055467511885895,
+    "macro_f1": 0.31221289852501133
+  },
+  "verdict": "Cross-domain (Kaggle->Webcam) accuracy ranges 42.3%-50.6% and macro-F1 0.254-0.324 across RandomForest/kNN/SVM-RBF/MLP -- all four collapse far below their ~99%+ in-domain accuracy (evaluate.py section 6). The domain-shift gap is not a RandomForest-specific artifact; it holds, with some spread, across every classifier family tested."
+}

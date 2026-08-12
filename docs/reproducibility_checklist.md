@@ -56,10 +56,24 @@ against this output until it is.
 For the cross-source forensic analysis (the project's key finding):
 ```
 python analyze_domain_shift.py      # -> results/domain_shift_forensics.json, domain_shift_features.png
-python build_invariant_features.py  # -> results/invariant_features_test.json
+python build_invariant_features.py  # -> results/invariant_features_test.json (incl. multi-seed + McNemar checks)
 ```
 Wall-clock latency figures will vary a few ms run-to-run; accuracy/F1/collision figures are
 deterministic given the fixed seeds above.
+
+**Final-validation pass (v2, 2026-08-13) additions** — see `PROJECT_DOSSIER_FINAL_V2.md` and
+`FINAL_RESEARCH_AUDIT.md` for what each of these answers:
+```
+python import_kaggle_dataset.py --dir <extracted Kaggle root> --out-csv isl_dataset_kaggle_controlled.csv --confidence 0.7
+python analyze_domain_shift_controlled.py       # confidence-matched controlled comparison
+python test_handswap_hypothesis.py              # hand-column-swap hypothesis test
+python visualize_landmark_geometry.py           # qualitative landmark-geometry figure
+python test_classifier_generalization_of_gap.py # is the gap RandomForest-specific?
+python build_results_final_v2.py                # -> RESULTS_FINAL_V2.json
+```
+The controlled-import step requires the original extracted Kaggle image folder (external to
+this repo, same as the original `import_kaggle_dataset.py` run) — `isl_dataset_kaggle_controlled.csv`
+itself is present on disk so `analyze_domain_shift_controlled.py` can be rerun without re-extracting.
 
 To re-verify the live Trainer path (not just the standalone `evaluate.py` script):
 ```

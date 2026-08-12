@@ -159,6 +159,7 @@ def main():
     print(f"Raw features: {Xs.shape[1]}, invariant features: {Xi.shape[1]}, handslot-agnostic: {Xh.shape[1]}")
 
     results = {}
+    preds_for_mcnemar = {}
     print("\n" + "=" * 70)
     print("Cross-domain evaluation: RAW vs INVARIANT vs HANDSLOT-AGNOSTIC features")
     print("=" * 70)
@@ -168,7 +169,7 @@ def main():
         # the headline numbers are the cross-domain ones below.
         acc_kw, f1_kw, per_class_kw, pred_kw, ci_kw = fit_eval(
             Xf[is_kaggle], ys[is_kaggle], Xf[is_webcam], ys[is_webcam], SHARED_CLASSES, with_ci=True)
-        acc_wk, f1_wk, _, _, ci_wk = fit_eval(
+        acc_wk, f1_wk, _, pred_wk, ci_wk = fit_eval(
             Xf[is_webcam], ys[is_webcam], Xf[is_kaggle], ys[is_kaggle], with_ci=True)
         print(f"\n[{feat_name}]")
         print(f"  train Kaggle -> test Webcam: acc={acc_kw*100:.2f}% {ci_kw['accuracy_95ci']} "
@@ -188,6 +189,38 @@ def main():
             "webcam_to_kaggle_ci": ci_wk,
             "per_class_recall_kaggle_to_webcam": per_class_kw,
         }
+        # y_webcam/y_kaggle row order is identical across feat_name (same mask,
+        # same ys), so predictions are directly pairable across representations.
+        preds_for_mcnemar[feat_name] = {"kaggle_to_webcam": pred_kw, "webcam_to_kaggle": pred_wk}
+
+    print("\n" + "=" * 70)
+    print("Paired significance test: raw_132 vs handslot_agnostic_41, SAME test rows")
+    print("(McNemar's test on correct/incorrect per-sample, exact binomial version --")
+    print(" a stronger claim than non-overlapping bootstrap CIs alone, since the two")
+    print(" models are compared on paired predictions rather than independent samples)")
+    print("=" * 70)
+    from scipy.stats import binomtest
+    mcnemar = {}
+    y_true_by_direction = {"kaggle_to_webcam": ys[is_webcam], "webcam_to_kaggle": ys[is_kaggle]}
+    for direction in ["kaggle_to_webcam", "webcam_to_kaggle"]:
+        y_true = y_true_by_direction[direction]
+        p_raw = preds_for_mcnemar["raw_132"][direction]
+        p_hs = preds_for_mcnemar["handslot_agnostic_41"][direction]
+        raw_correct = (p_raw == y_true)
+        hs_correct = (p_hs == y_true)
+        n01 = int(((~raw_correct) & hs_correct).sum())   # raw wrong, handslot right
+        n10 = int((raw_correct & (~hs_correct)).sum())   # raw right, handslot wrong
+        n_discordant = n01 + n10
+        if n_discordant == 0:
+            pval = 1.0
+        else:
+            pval = binomtest(n01, n_discordant, 0.5, alternative="greater").pvalue
+        print(f"  [{direction}] raw-wrong/handslot-right: {n01}   raw-right/handslot-wrong: {n10}   "
+              f"discordant pairs: {n_discordant}   McNemar exact p-value: {pval:.2e}")
+        mcnemar[direction] = {"raw_wrong_handslot_right": n01, "raw_right_handslot_wrong": n10,
+                               "n_discordant_pairs": n_discordant, "p_value": float(pval),
+                               "significant_at_0.05": bool(pval < 0.05)}
+    results["mcnemar_raw_vs_handslot_agnostic"] = mcnemar
 
     print("\n" + "=" * 70)
     print("Sanity check: does the invariant representation hurt WITHIN-domain accuracy?")
@@ -201,6 +234,42 @@ def main():
         acc, f1m, _, _ = fit_eval(Xt, ytr, Xe, yte)
         print(f"  [{feat_name}] mixed-domain held-out (shared classes only): acc={acc*100:.2f}% macro-F1={f1m:.3f}")
         results.setdefault("within_domain_sanity_check", {})[feat_name] = {"accuracy": acc, "macro_f1": f1m}
+
+    print("\n" + "=" * 70)
+    print("Multi-seed robustness check: does handslot-agnostic > raw survive across")
+    print("multiple RandomForest random_state seeds, not just seed=42 (rules out a")
+    print("single-lucky-seed artifact -- CVIP2026-v2 hostile-ML-review requirement)")
+    print("=" * 70)
+    SEEDS = [0, 1, 2, 3, 4, 42, 100]
+    multiseed = {}
+    for feat_name, Xf in [("raw_132", Xs), ("invariant_41", Xi), ("handslot_agnostic_41", Xh)]:
+        kw_f1s, wk_f1s = [], []
+        for seed in SEEDS:
+            c1 = RandomForestClassifier(n_estimators=100, max_depth=15, random_state=seed, n_jobs=-1)
+            c1.fit(Xf[is_kaggle], ys[is_kaggle])
+            kw_f1s.append(f1_score(ys[is_webcam], c1.predict(Xf[is_webcam]), average="macro", zero_division=0))
+            c2 = RandomForestClassifier(n_estimators=100, max_depth=15, random_state=seed, n_jobs=-1)
+            c2.fit(Xf[is_webcam], ys[is_webcam])
+            wk_f1s.append(f1_score(ys[is_kaggle], c2.predict(Xf[is_kaggle]), average="macro", zero_division=0))
+        kw_f1s, wk_f1s = np.array(kw_f1s), np.array(wk_f1s)
+        print(f"  [{feat_name}] Kaggle->Webcam macro-F1 across {len(SEEDS)} RF seeds: "
+              f"{kw_f1s.mean():.3f} +/- {kw_f1s.std():.3f}  (min {kw_f1s.min():.3f}, max {kw_f1s.max():.3f})")
+        print(f"  [{feat_name}] Webcam->Kaggle macro-F1 across {len(SEEDS)} RF seeds: "
+              f"{wk_f1s.mean():.3f} +/- {wk_f1s.std():.3f}  (min {wk_f1s.min():.3f}, max {wk_f1s.max():.3f})")
+        multiseed[feat_name] = {
+            "seeds": SEEDS,
+            "kaggle_to_webcam_macro_f1_mean": float(kw_f1s.mean()), "kaggle_to_webcam_macro_f1_std": float(kw_f1s.std()),
+            "kaggle_to_webcam_macro_f1_min": float(kw_f1s.min()), "kaggle_to_webcam_macro_f1_max": float(kw_f1s.max()),
+            "webcam_to_kaggle_macro_f1_mean": float(wk_f1s.mean()), "webcam_to_kaggle_macro_f1_std": float(wk_f1s.std()),
+            "webcam_to_kaggle_macro_f1_min": float(wk_f1s.min()), "webcam_to_kaggle_macro_f1_max": float(wk_f1s.max()),
+        }
+    raw_kw_max = multiseed["raw_132"]["kaggle_to_webcam_macro_f1_max"]
+    hs_kw_min = multiseed["handslot_agnostic_41"]["kaggle_to_webcam_macro_f1_min"]
+    survives = hs_kw_min > raw_kw_max
+    print(f"\n  Handslot-agnostic's WORST seed ({hs_kw_min:.3f}) vs raw's BEST seed ({raw_kw_max:.3f}) on "
+          f"Kaggle->Webcam: {'NO OVERLAP -- improvement survives worst-case seed variation' if survives else 'OVERLAP -- improvement is not seed-robust at the extremes'}")
+    multiseed["verdict_kaggle_to_webcam_seed_robust"] = bool(survives)
+    results["multiseed_robustness_check"] = multiseed
 
     with open("results/invariant_features_test.json", "w") as f:
         json.dump(results, f, indent=2)

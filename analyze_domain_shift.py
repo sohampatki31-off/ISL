@@ -255,6 +255,73 @@ def main():
         "status": "well-evidenced fact; NOT experimentally confirmed as a cause of the cross-domain gap",
     }
 
+    print()
+    print("=" * 70)
+    print("H8 (visual + quantitative, INCONCLUSIVE): does two-hand overlap/proximity")
+    print("    explain the residual A/E/F failures H6 leaves unexplained by handedness?")
+    print("=" * 70)
+    print("  Visual spot-check (2026-08-12) of raw Kaggle images: E, F, K, M show both hands")
+    print("  very close together / touching / overlapping in frame; A shows two hands crossed")
+    print("  closely. Tested quantitatively via the existing rel_d_wrist/rel_d_index inter-hand")
+    print("  distance features (per-class, per-domain, both-hands-present rows only):")
+    h8 = {}
+    for c in SHARED_CLASSES:
+        row = {}
+        for dom_name, dom_mask in [("kaggle", is_kaggle), ("webcam", is_webcam)]:
+            m = (ys == c) & dom_mask
+            r_p = np.abs(Xs[m][:, :63]).sum(axis=1) > 0
+            l_p = np.abs(Xs[m][:, 63:126]).sum(axis=1) > 0
+            both = m & False
+            both_idx = np.where(m)[0][r_p & l_p]
+            if len(both_idx) == 0:
+                row[dom_name] = None
+                continue
+            row[dom_name] = {"n": int(len(both_idx)), "mean_d_wrist": float(Xs[both_idx, 129].mean()),
+                              "mean_d_index": float(Xs[both_idx, 130].mean())}
+        h8[c] = row
+        print(f"  {c:3s} kaggle={row.get('kaggle')}  webcam={row.get('webcam')}")
+    print("  VERDICT: no clean separation between failing (A,E,F,K,M) and succeeding (B,D,G)")
+    print("  classes on these two scalar distance summaries -- e.g. D (succeeds, 93% recall) has a")
+    print("  LARGER kaggle mean_d_index than E or F (both fail, 0% recall). This hypothesis is NOT")
+    print("  confirmed by this test. Filed as UNCONFIRMED, not treated as a cause.")
+    results["h8_hand_proximity_test_inconclusive"] = {
+        "per_class": h8,
+        "verdict": ("INCONCLUSIVE -- visually motivated (overlapping/close hands in E,F,K,M Kaggle images) but "
+                     "the quantitative inter-hand-distance test shows no clean separation between failing and "
+                     "succeeding classes. Do not report as a confirmed cause."),
+    }
+
+    print()
+    print("=" * 70)
+    print("H9 (quantitative, INCONCLUSIVE): does per-class right-hand Cohen's d magnitude")
+    print("    predict which classes fail, independent of handedness composition?")
+    print("=" * 70)
+    h9 = {}
+    for c in SHARED_CLASSES:
+        kf = Xs[(ys == c) & is_kaggle][:, RIGHT_IDX]
+        wf = Xs[(ys == c) & is_webcam][:, RIGHT_IDX]
+        kf = kf[np.abs(kf).sum(axis=1) > 0]
+        wf = wf[np.abs(wf).sum(axis=1) > 0]
+        if len(kf) < 2 or len(wf) < 2:
+            h9[c] = {"status": "insufficient right-hand rows in one domain", "n_kaggle": int(len(kf)), "n_webcam": int(len(wf))}
+            continue
+        md = kf.mean(axis=0) - wf.mean(axis=0)
+        ps = np.sqrt((kf.std(axis=0) ** 2 + wf.std(axis=0) ** 2) / 2)
+        dd = md / np.where(ps > 1e-9, ps, 1e-9)
+        h9[c] = {"median_abs_d": float(np.median(np.abs(dd))), "max_abs_d": float(np.max(np.abs(dd)))}
+        print(f"  {c:3s} median|d|={h9[c]['median_abs_d']:.3f}  max|d|={h9[c]['max_abs_d']:.3f}")
+    print("  VERDICT: no monotonic relationship with recall -- D (succeeds, 93%) has HIGHER median")
+    print("  Cohen's d than A or E (both fail, 0%). This metric is itself confounded: several classes")
+    print("  have zero comparable right-hand-only rows in one domain (handedness composition drives")
+    print("  which samples even exist to compare), which is exactly the confound this test cannot")
+    print("  escape. Filed as UNCONFIRMED, not treated as a cause.")
+    results["h9_per_class_cohens_d_test_inconclusive"] = {
+        "per_class": h9,
+        "verdict": ("INCONCLUSIVE -- no monotonic relationship between per-class right-hand feature shift "
+                     "magnitude and cross-domain recall; the test is itself confounded by handedness "
+                     "composition determining which rows are even comparable. Do not report as a confirmed cause."),
+    }
+
     with open("results/domain_shift_forensics.json", "w") as f:
         json.dump(results, f, indent=2)
     print("\nWritten: results/domain_shift_forensics.json, results/domain_shift_features.png")

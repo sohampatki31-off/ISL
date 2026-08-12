@@ -1,0 +1,841 @@
+{
+  "original_0.5conf": {
+    "in_domain_kaggle": {
+      "n_train": 11998,
+      "n_test": 5143,
+      "accuracy": 0.9992222438265603,
+      "macro_f1": 0.9991969959205812,
+      "accuracy_95ci": [
+        0.9984444876531208,
+        0.9998055609566401
+      ],
+      "macro_f1_95ci": [
+        0.998330471770426,
+        0.9998148496709844
+      ],
+      "per_class": {
+        "A": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 338
+        },
+        "B": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 359
+        },
+        "C": {
+          "precision": 0.9974554707379135,
+          "recall": 1.0,
+          "f1": 0.9987261146496815,
+          "support": 392
+        },
+        "D": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 353
+        },
+        "E": {
+          "precision": 1.0,
+          "recall": 0.9972602739726028,
+          "f1": 0.9986282578875172,
+          "support": 365
+        },
+        "F": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 366
+        },
+        "G": {
+          "precision": 0.9913793103448276,
+          "recall": 1.0,
+          "f1": 0.9956709956709957,
+          "support": 345
+        },
+        "I": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 409
+        },
+        "J": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 353
+        },
+        "K": {
+          "precision": 1.0,
+          "recall": 0.9915014164305949,
+          "f1": 0.9957325746799431,
+          "support": 353
+        },
+        "L": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 372
+        },
+        "M": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 354
+        },
+        "U": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 371
+        },
+        "V": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 413
+        }
+      }
+    },
+    "in_domain_webcam": {
+      "n_train": 407,
+      "n_test": 224,
+      "accuracy": 0.46875,
+      "macro_f1": 0.20954077211899488,
+      "accuracy_95ci": [
+        0.40625,
+        0.5357142857142857
+      ],
+      "macro_f1_95ci": [
+        0.18947641542988378,
+        0.24224126932838852
+      ],
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "B": {
+          "precision": 0.5454545454545454,
+          "recall": 1.0,
+          "f1": 0.7058823529411765,
+          "support": 24
+        },
+        "C": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "D": {
+          "precision": 0.7407407407407407,
+          "recall": 1.0,
+          "f1": 0.851063829787234,
+          "support": 60
+        },
+        "E": {
+          "precision": 0.3684210526315789,
+          "recall": 1.0,
+          "f1": 0.5384615384615384,
+          "support": 21
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 30
+        },
+        "G": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 35
+        },
+        "I": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 21
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "L": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "M": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 33
+        },
+        "V": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        }
+      }
+    },
+    "kaggle_to_webcam": {
+      "n_train": 17141,
+      "n_test": 631,
+      "accuracy": 0.5039619651347068,
+      "macro_f1": 0.3120675063146931,
+      "accuracy_95ci": [
+        0.4659270998415214,
+        0.5404120443740095
+      ],
+      "macro_f1_95ci": [
+        0.29583153473399204,
+        0.32543355594604734
+      ],
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 47
+        },
+        "B": {
+          "precision": 0.43103448275862066,
+          "recall": 0.9259259259259259,
+          "f1": 0.5882352941176471,
+          "support": 54
+        },
+        "C": {
+          "precision": 0.07352941176470588,
+          "recall": 0.07936507936507936,
+          "f1": 0.07633587786259542,
+          "support": 63
+        },
+        "D": {
+          "precision": 0.7313432835820896,
+          "recall": 0.9333333333333333,
+          "f1": 0.8200836820083682,
+          "support": 105
+        },
+        "E": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 55
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 30
+        },
+        "G": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 35
+        },
+        "I": {
+          "precision": 0.3088235294117647,
+          "recall": 1.0,
+          "f1": 0.47191011235955055,
+          "support": 21
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 17
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 19
+        },
+        "L": {
+          "precision": 0.55,
+          "recall": 1.0,
+          "f1": 0.7096774193548387,
+          "support": 44
+        },
+        "M": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 40
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 33
+        },
+        "V": {
+          "precision": 0.5555555555555556,
+          "recall": 0.9558823529411765,
+          "f1": 0.7027027027027027,
+          "support": 68
+        }
+      }
+    },
+    "webcam_to_kaggle": {
+      "n_train": 631,
+      "n_test": 17141,
+      "accuracy": 0.29409019310425294,
+      "macro_f1": 0.21118307672376252,
+      "accuracy_95ci": [
+        0.2872046555043463,
+        0.3010326118662855
+      ],
+      "macro_f1_95ci": [
+        0.20844230576193254,
+        0.21390534752320586
+      ],
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "B": {
+          "precision": 0.20646067415730338,
+          "recall": 0.98989898989899,
+          "f1": 0.34166182452062754,
+          "support": 1188
+        },
+        "C": {
+          "precision": 0.6808510638297872,
+          "recall": 0.02476780185758514,
+          "f1": 0.04779686333084392,
+          "support": 1292
+        },
+        "D": {
+          "precision": 0.1924812030075188,
+          "recall": 0.4266666666666667,
+          "f1": 0.26528497409326424,
+          "support": 1200
+        },
+        "E": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "G": {
+          "precision": 0.30874958095876637,
+          "recall": 0.76814011676397,
+          "f1": 0.44045911047345765,
+          "support": 1199
+        },
+        "I": {
+          "precision": 0.8558172733761599,
+          "recall": 0.8701015965166908,
+          "f1": 0.8629003238575027,
+          "support": 1378
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "L": {
+          "precision": 0.9950248756218906,
+          "recall": 1.0,
+          "f1": 0.9975062344139651,
+          "support": 1200
+        },
+        "M": {
+          "precision": 0.0011148272017837235,
+          "recall": 0.0008333333333333334,
+          "f1": 0.0009537434430138292,
+          "support": 1200
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1199
+        },
+        "V": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1285
+        }
+      }
+    }
+  },
+  "controlled_0.7conf": {
+    "in_domain_kaggle": {
+      "n_train": 11884,
+      "n_test": 5094,
+      "accuracy": 0.9994110718492344,
+      "macro_f1": 0.9994123585588939,
+      "accuracy_95ci": [
+        0.9986258343148803,
+        1.0
+      ],
+      "macro_f1_95ci": [
+        0.9986376865000769,
+        1.0
+      ],
+      "per_class": {
+        "A": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 358
+        },
+        "B": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 349
+        },
+        "C": {
+          "precision": 1.0,
+          "recall": 0.9972972972972973,
+          "f1": 0.9986468200270636,
+          "support": 370
+        },
+        "D": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 339
+        },
+        "E": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 338
+        },
+        "F": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 361
+        },
+        "G": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 350
+        },
+        "I": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 425
+        },
+        "J": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 357
+        },
+        "K": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 364
+        },
+        "L": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 371
+        },
+        "M": {
+          "precision": 0.9917808219178083,
+          "recall": 1.0,
+          "f1": 0.9958734525447043,
+          "support": 362
+        },
+        "U": {
+          "precision": 1.0,
+          "recall": 0.9945205479452055,
+          "f1": 0.9972527472527473,
+          "support": 365
+        },
+        "V": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 385
+        }
+      }
+    },
+    "in_domain_webcam": {
+      "n_train": 407,
+      "n_test": 224,
+      "accuracy": 0.46875,
+      "macro_f1": 0.20954077211899488,
+      "accuracy_95ci": [
+        0.40625,
+        0.5357142857142857
+      ],
+      "macro_f1_95ci": [
+        0.18947641542988378,
+        0.24224126932838852
+      ],
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "B": {
+          "precision": 0.5454545454545454,
+          "recall": 1.0,
+          "f1": 0.7058823529411765,
+          "support": 24
+        },
+        "C": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "D": {
+          "precision": 0.7407407407407407,
+          "recall": 1.0,
+          "f1": 0.851063829787234,
+          "support": 60
+        },
+        "E": {
+          "precision": 0.3684210526315789,
+          "recall": 1.0,
+          "f1": 0.5384615384615384,
+          "support": 21
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 30
+        },
+        "G": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 35
+        },
+        "I": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 21
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "L": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "M": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 33
+        },
+        "V": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        }
+      }
+    },
+    "kaggle_to_webcam": {
+      "n_train": 16978,
+      "n_test": 631,
+      "accuracy": 0.4722662440570523,
+      "macro_f1": 0.27541249493757813,
+      "accuracy_95ci": [
+        0.43106180665610144,
+        0.5103011093502378
+      ],
+      "macro_f1_95ci": [
+        0.25938811201117856,
+        0.28903884422986886
+      ],
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 47
+        },
+        "B": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 54
+        },
+        "C": {
+          "precision": 0.33689839572192515,
+          "recall": 1.0,
+          "f1": 0.504,
+          "support": 63
+        },
+        "D": {
+          "precision": 0.7050359712230215,
+          "recall": 0.9333333333333333,
+          "f1": 0.8032786885245902,
+          "support": 105
+        },
+        "E": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 55
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 30
+        },
+        "G": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 35
+        },
+        "I": {
+          "precision": 0.25,
+          "recall": 1.0,
+          "f1": 0.4,
+          "support": 21
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 17
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 19
+        },
+        "L": {
+          "precision": 0.4943820224719101,
+          "recall": 1.0,
+          "f1": 0.6616541353383458,
+          "support": 44
+        },
+        "M": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 40
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 33
+        },
+        "V": {
+          "precision": 0.44047619047619047,
+          "recall": 0.5441176470588235,
+          "f1": 0.4868421052631579,
+          "support": 68
+        }
+      }
+    },
+    "webcam_to_kaggle": {
+      "n_train": 631,
+      "n_test": 16978,
+      "accuracy": 0.2835434091176817,
+      "macro_f1": 0.2019916242817133,
+      "accuracy_95ci": [
+        0.27659176581458356,
+        0.29043468017434326
+      ],
+      "macro_f1_95ci": [
+        0.1992021338076119,
+        0.20469892181024596
+      ],
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "B": {
+          "precision": 0.18788847451607174,
+          "recall": 0.9742173112338858,
+          "f1": 0.31502158701801397,
+          "support": 1086
+        },
+        "C": {
+          "precision": 0.6,
+          "recall": 0.014388489208633094,
+          "f1": 0.02810304449648712,
+          "support": 1251
+        },
+        "D": {
+          "precision": 0.2053354890864996,
+          "recall": 0.42333333333333334,
+          "f1": 0.27653783342406096,
+          "support": 1200
+        },
+        "E": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "G": {
+          "precision": 0.29667975722956086,
+          "recall": 0.6971476510067114,
+          "f1": 0.41622839969947406,
+          "support": 1192
+        },
+        "I": {
+          "precision": 0.7465667915106118,
+          "recall": 0.8679245283018868,
+          "f1": 0.8026845637583893,
+          "support": 1378
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "L": {
+          "precision": 0.9732360097323601,
+          "recall": 1.0,
+          "f1": 0.9864364981504316,
+          "support": 1200
+        },
+        "M": {
+          "precision": 0.0033707865168539327,
+          "recall": 0.0025,
+          "f1": 0.0028708133971291866,
+          "support": 1200
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1193
+        },
+        "V": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1278
+        }
+      }
+    }
+  },
+  "comparison": {
+    "in_domain_kaggle": {
+      "original_accuracy": 0.9992222438265603,
+      "controlled_accuracy": 0.9994110718492344,
+      "delta_accuracy_pp": 0.018882802267405907,
+      "original_macro_f1": 0.9991969959205812,
+      "controlled_macro_f1": 0.9994123585588939,
+      "delta_macro_f1": 0.0002153626383126772
+    },
+    "in_domain_webcam": {
+      "original_accuracy": 0.46875,
+      "controlled_accuracy": 0.46875,
+      "delta_accuracy_pp": 0.0,
+      "original_macro_f1": 0.20954077211899488,
+      "controlled_macro_f1": 0.20954077211899488,
+      "delta_macro_f1": 0.0
+    },
+    "kaggle_to_webcam": {
+      "original_accuracy": 0.5039619651347068,
+      "controlled_accuracy": 0.4722662440570523,
+      "delta_accuracy_pp": -3.1695721077654504,
+      "original_macro_f1": 0.3120675063146931,
+      "controlled_macro_f1": 0.27541249493757813,
+      "delta_macro_f1": -0.036655011377114965
+    },
+    "webcam_to_kaggle": {
+      "original_accuracy": 0.29409019310425294,
+      "controlled_accuracy": 0.2835434091176817,
+      "delta_accuracy_pp": -1.0546783986571218,
+      "original_macro_f1": 0.21118307672376252,
+      "controlled_macro_f1": 0.2019916242817133,
+      "delta_macro_f1": -0.00919145244204922
+    }
+  },
+  "limitation_one_euro_filtering_not_controllable": "One-Euro temporal filtering (webcam) vs. none (Kaggle, static photos) could NOT be controlled for -- raw unfiltered webcam video frames were never saved, only the final filtered feature vectors. Retroactively removing the filter's effect, or fabricating an 'unfiltered webcam' dataset, is not possible without new data collection. This asymmetry is partly inherent to comparing a photo dataset against a video-capture dataset and is reported as an unresolved limitation, not a fixed confound."
+}

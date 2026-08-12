@@ -22,3 +22,11 @@ labels_kaggle.pkl
 isl_dataset_one_hand.csv
 isl_model_one_hand.pkl
 labels_one_hand.pkl
+
+# Confidence-controlled Kaggle re-extraction (analyze_domain_shift_controlled.py
+# input) -- same rationale as above: regenerate via import_kaggle_dataset.py
+# --confidence 0.7 rather than versioning ~60MB of derived data. Raw console
+# logs from long-running import/analysis runs are scratch, not source of truth.
+isl_dataset_kaggle_controlled.csv
+controlled_import.log
+inv_v2.log

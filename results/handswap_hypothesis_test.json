@@ -1,0 +1,241 @@
+{
+  "hypothesis": "Systematic right/left hand-column mislabeling between isl_main.py's un-mirror correction and import_kaggle_dataset.py's raw-MediaPipe-label convention explains some of the residual (H6-unexplained) cross-domain failures for two-handed classes.",
+  "method_caveat": "Only the 126 raw per-landmark columns were swapped exactly; the 6 inter-hand relative-delta features (126:132) were left unchanged because their pre-normalization raw inputs are not recoverable from the stored, already-normalized CSV -- this under-tests the hypothesis for those 6 features only.",
+  "baseline": {
+    "accuracy": 0.5039619651347068,
+    "macro_f1": 0.3120675063146931,
+    "per_class": {
+      "A": {
+        "recall": 0.0,
+        "support": 47
+      },
+      "B": {
+        "recall": 0.9259259259259259,
+        "support": 54
+      },
+      "C": {
+        "recall": 0.07936507936507936,
+        "support": 63
+      },
+      "D": {
+        "recall": 0.9333333333333333,
+        "support": 105
+      },
+      "E": {
+        "recall": 0.0,
+        "support": 55
+      },
+      "F": {
+        "recall": 0.0,
+        "support": 30
+      },
+      "G": {
+        "recall": 1.0,
+        "support": 35
+      },
+      "I": {
+        "recall": 1.0,
+        "support": 21
+      },
+      "J": {
+        "recall": 0.0,
+        "support": 17
+      },
+      "K": {
+        "recall": 0.0,
+        "support": 19
+      },
+      "L": {
+        "recall": 1.0,
+        "support": 44
+      },
+      "M": {
+        "recall": 0.0,
+        "support": 40
+      },
+      "U": {
+        "recall": 0.0,
+        "support": 33
+      },
+      "V": {
+        "recall": 0.9558823529411765,
+        "support": 68
+      }
+    }
+  },
+  "hand_swapped_two_handed_rows_only": {
+    "accuracy": 0.3312202852614897,
+    "macro_f1": 0.20493348035955455,
+    "per_class": {
+      "A": {
+        "recall": 0.0,
+        "support": 47
+      },
+      "B": {
+        "recall": 0.0,
+        "support": 54
+      },
+      "C": {
+        "recall": 0.07936507936507936,
+        "support": 63
+      },
+      "D": {
+        "recall": 0.7047619047619048,
+        "support": 105
+      },
+      "E": {
+        "recall": 0.0,
+        "support": 55
+      },
+      "F": {
+        "recall": 0.0,
+        "support": 30
+      },
+      "G": {
+        "recall": 0.0,
+        "support": 35
+      },
+      "I": {
+        "recall": 1.0,
+        "support": 21
+      },
+      "J": {
+        "recall": 0.0,
+        "support": 17
+      },
+      "K": {
+        "recall": 0.0,
+        "support": 19
+      },
+      "L": {
+        "recall": 1.0,
+        "support": 44
+      },
+      "M": {
+        "recall": 0.0,
+        "support": 40
+      },
+      "U": {
+        "recall": 0.0,
+        "support": 33
+      },
+      "V": {
+        "recall": 0.9558823529411765,
+        "support": 68
+      }
+    }
+  },
+  "per_class_comparison": {
+    "A": {
+      "support": 47,
+      "n_two_handed": 47,
+      "baseline_recall": 0.0,
+      "swapped_recall": 0.0,
+      "delta_pp": 0.0
+    },
+    "B": {
+      "support": 54,
+      "n_two_handed": 53,
+      "baseline_recall": 0.9259259259259259,
+      "swapped_recall": 0.0,
+      "delta_pp": -92.5925925925926
+    },
+    "C": {
+      "support": 63,
+      "n_two_handed": 0,
+      "baseline_recall": 0.07936507936507936,
+      "swapped_recall": 0.07936507936507936,
+      "delta_pp": 0.0
+    },
+    "D": {
+      "support": 105,
+      "n_two_handed": 98,
+      "baseline_recall": 0.9333333333333333,
+      "swapped_recall": 0.7047619047619048,
+      "delta_pp": -22.857142857142854
+    },
+    "E": {
+      "support": 55,
+      "n_two_handed": 46,
+      "baseline_recall": 0.0,
+      "swapped_recall": 0.0,
+      "delta_pp": 0.0
+    },
+    "F": {
+      "support": 30,
+      "n_two_handed": 30,
+      "baseline_recall": 0.0,
+      "swapped_recall": 0.0,
+      "delta_pp": 0.0
+    },
+    "G": {
+      "support": 35,
+      "n_two_handed": 35,
+      "baseline_recall": 1.0,
+      "swapped_recall": 0.0,
+      "delta_pp": -100.0
+    },
+    "I": {
+      "support": 21,
+      "n_two_handed": 0,
+      "baseline_recall": 1.0,
+      "swapped_recall": 1.0,
+      "delta_pp": 0.0
+    },
+    "J": {
+      "support": 17,
+      "n_two_handed": 17,
+      "baseline_recall": 0.0,
+      "swapped_recall": 0.0,
+      "delta_pp": 0.0
+    },
+    "K": {
+      "support": 19,
+      "n_two_handed": 0,
+      "baseline_recall": 0.0,
+      "swapped_recall": 0.0,
+      "delta_pp": 0.0
+    },
+    "L": {
+      "support": 44,
+      "n_two_handed": 0,
+      "baseline_recall": 1.0,
+      "swapped_recall": 1.0,
+      "delta_pp": 0.0
+    },
+    "M": {
+      "support": 40,
+      "n_two_handed": 14,
+      "baseline_recall": 0.0,
+      "swapped_recall": 0.0,
+      "delta_pp": 0.0
+    },
+    "U": {
+      "support": 33,
+      "n_two_handed": 0,
+      "baseline_recall": 0.0,
+      "swapped_recall": 0.0,
+      "delta_pp": 0.0
+    },
+    "V": {
+      "support": 68,
+      "n_two_handed": 0,
+      "baseline_recall": 0.9558823529411765,
+      "swapped_recall": 0.9558823529411765,
+      "delta_pp": 0.0
+    }
+  },
+  "previously_failing_two_handed_dominant_classes": [
+    "A",
+    "E",
+    "F",
+    "J"
+  ],
+  "materially_recovered_by_swap": [],
+  "previously_working_classes_damaged_by_swap": [
+    "B",
+    "D",
+    "G"
+  ],
+  "verdict": "NOT SUPPORTED -- swapping hand blocks does not materially recover any previously-failing two-handed class. The un-mirror/handedness-swap convention mismatch is not shown to be a cause of the A/E/F/K residual failures by this test."
+}

@@ -125,6 +125,22 @@
       "V": 1.0
     }
   },
+  "mcnemar_raw_vs_handslot_agnostic": {
+    "kaggle_to_webcam": {
+      "raw_wrong_handslot_right": 99,
+      "raw_right_handslot_wrong": 25,
+      "n_discordant_pairs": 124,
+      "p_value": 6.4887799778358814e-12,
+      "significant_at_0.05": true
+    },
+    "webcam_to_kaggle": {
+      "raw_wrong_handslot_right": 2797,
+      "raw_right_handslot_wrong": 2341,
+      "n_discordant_pairs": 5138,
+      "p_value": 1.06455538229477e-10,
+      "significant_at_0.05": true
+    }
+  },
   "within_domain_sanity_check": {
     "raw_132": {
       "accuracy": 0.99915611814346,
@@ -138,5 +154,65 @@
       "accuracy": 0.9983122362869198,
       "macro_f1": 0.9983112944849312
     }
+  },
+  "multiseed_robustness_check": {
+    "raw_132": {
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        42,
+        100
+      ],
+      "kaggle_to_webcam_macro_f1_mean": 0.2933831858578187,
+      "kaggle_to_webcam_macro_f1_std": 0.013015687723448252,
+      "kaggle_to_webcam_macro_f1_min": 0.2733331170610801,
+      "kaggle_to_webcam_macro_f1_max": 0.3120675063146931,
+      "webcam_to_kaggle_macro_f1_mean": 0.1822398977385459,
+      "webcam_to_kaggle_macro_f1_std": 0.01901532617333499,
+      "webcam_to_kaggle_macro_f1_min": 0.1599513213419321,
+      "webcam_to_kaggle_macro_f1_max": 0.21118307672376252
+    },
+    "invariant_41": {
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        42,
+        100
+      ],
+      "kaggle_to_webcam_macro_f1_mean": 0.3326007236189134,
+      "kaggle_to_webcam_macro_f1_std": 0.03822283968107747,
+      "kaggle_to_webcam_macro_f1_min": 0.24520036830866615,
+      "kaggle_to_webcam_macro_f1_max": 0.368464953943736,
+      "webcam_to_kaggle_macro_f1_mean": 0.2866917974410988,
+      "webcam_to_kaggle_macro_f1_std": 0.0457477927507185,
+      "webcam_to_kaggle_macro_f1_min": 0.2112785523732959,
+      "webcam_to_kaggle_macro_f1_max": 0.3443432929487576
+    },
+    "handslot_agnostic_41": {
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        42,
+        100
+      ],
+      "kaggle_to_webcam_macro_f1_mean": 0.40491508672161913,
+      "kaggle_to_webcam_macro_f1_std": 0.04220209829874399,
+      "kaggle_to_webcam_macro_f1_min": 0.3395639485406551,
+      "kaggle_to_webcam_macro_f1_max": 0.4581188139717212,
+      "webcam_to_kaggle_macro_f1_mean": 0.26865270329369567,
+      "webcam_to_kaggle_macro_f1_std": 0.009633198939998127,
+      "webcam_to_kaggle_macro_f1_min": 0.25182825252935315,
+      "webcam_to_kaggle_macro_f1_max": 0.28556649907444653
+    },
+    "verdict_kaggle_to_webcam_seed_robust": true
   }
 }

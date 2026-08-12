@@ -342,5 +342,200 @@
     "finding": "31/35 classes are uniformly 1200x 128x128px tightly-cropped hand photos; C/I/O/V additionally contain 90-247 extra images each from a different, much higher-resolution sub-source (640x480 or ~1088x1920), matching those same 4 classes' >1200-row counts in isl_dataset_kaggle.csv.",
     "reproducible_from_repo_alone": false,
     "status": "well-evidenced fact; NOT experimentally confirmed as a cause of the cross-domain gap"
+  },
+  "h8_hand_proximity_test_inconclusive": {
+    "per_class": {
+      "A": {
+        "kaggle": {
+          "n": 1073,
+          "mean_d_wrist": 3.6033658877578056,
+          "mean_d_index": 1.6952011845695452
+        },
+        "webcam": {
+          "n": 47,
+          "mean_d_wrist": 1.9715202811589319,
+          "mean_d_index": 1.401748717776322
+        }
+      },
+      "B": {
+        "kaggle": {
+          "n": 901,
+          "mean_d_wrist": 2.8396097126138966,
+          "mean_d_index": 0.16561533206516646
+        },
+        "webcam": {
+          "n": 53,
+          "mean_d_wrist": 2.3624082107165187,
+          "mean_d_index": 0.22213508036341503
+        }
+      },
+      "C": {
+        "kaggle": null,
+        "webcam": null
+      },
+      "D": {
+        "kaggle": {
+          "n": 1200,
+          "mean_d_wrist": 1.950216752731438,
+          "mean_d_index": 0.14677620998822308
+        },
+        "webcam": {
+          "n": 98,
+          "mean_d_wrist": 1.4760095974765437,
+          "mean_d_index": 0.1524813146604777
+        }
+      },
+      "E": {
+        "kaggle": {
+          "n": 1199,
+          "mean_d_wrist": 2.744469010010735,
+          "mean_d_index": 0.7577528016045505
+        },
+        "webcam": {
+          "n": 46,
+          "mean_d_wrist": 2.247426366884888,
+          "mean_d_index": 0.26807973178215666
+        }
+      },
+      "F": {
+        "kaggle": {
+          "n": 1200,
+          "mean_d_wrist": 2.748116945862347,
+          "mean_d_index": 0.8606021660047338
+        },
+        "webcam": {
+          "n": 30,
+          "mean_d_wrist": 2.10128880339682,
+          "mean_d_index": 0.28104758947422653
+        }
+      },
+      "G": {
+        "kaggle": {
+          "n": 969,
+          "mean_d_wrist": 2.3990200260777312,
+          "mean_d_index": 1.423333328196848
+        },
+        "webcam": {
+          "n": 35,
+          "mean_d_wrist": 1.8668771338636507,
+          "mean_d_index": 1.3265600245676277
+        }
+      },
+      "I": {
+        "kaggle": null,
+        "webcam": null
+      },
+      "J": {
+        "kaggle": null,
+        "webcam": {
+          "n": 17,
+          "mean_d_wrist": 1.5359590864110113,
+          "mean_d_index": 0.22740507398765053
+        }
+      },
+      "K": {
+        "kaggle": {
+          "n": 1136,
+          "mean_d_wrist": 3.2764057085158873,
+          "mean_d_index": 0.7064017658478845
+        },
+        "webcam": null
+      },
+      "L": {
+        "kaggle": null,
+        "webcam": null
+      },
+      "M": {
+        "kaggle": {
+          "n": 557,
+          "mean_d_wrist": 2.3035151123122297,
+          "mean_d_index": 0.8898154060478914
+        },
+        "webcam": {
+          "n": 14,
+          "mean_d_wrist": 2.145205230472434,
+          "mean_d_index": 1.0473187723029418
+        }
+      },
+      "U": {
+        "kaggle": {
+          "n": 16,
+          "mean_d_wrist": 1.500838875088124,
+          "mean_d_index": 0.4466029896746224
+        },
+        "webcam": null
+      },
+      "V": {
+        "kaggle": null,
+        "webcam": null
+      }
+    },
+    "verdict": "INCONCLUSIVE -- visually motivated (overlapping/close hands in E,F,K,M Kaggle images) but the quantitative inter-hand-distance test shows no clean separation between failing and succeeding classes. Do not report as a confirmed cause."
+  },
+  "h9_per_class_cohens_d_test_inconclusive": {
+    "per_class": {
+      "A": {
+        "median_abs_d": 3.7000404076094298,
+        "max_abs_d": 14.67016191106393
+      },
+      "B": {
+        "median_abs_d": 3.0111924334402316,
+        "max_abs_d": 7.598450251397834
+      },
+      "C": {
+        "status": "insufficient right-hand rows in one domain",
+        "n_kaggle": 1232,
+        "n_webcam": 0
+      },
+      "D": {
+        "median_abs_d": 5.589460764874468,
+        "max_abs_d": 22.537836378177545
+      },
+      "E": {
+        "median_abs_d": 3.9067583301171247,
+        "max_abs_d": 21.32181527729883
+      },
+      "F": {
+        "median_abs_d": 9.526102617067265,
+        "max_abs_d": 61.05652829444989
+      },
+      "G": {
+        "median_abs_d": 0.9500366551623644,
+        "max_abs_d": 5.5972857044718625
+      },
+      "I": {
+        "status": "insufficient right-hand rows in one domain",
+        "n_kaggle": 179,
+        "n_webcam": 0
+      },
+      "J": {
+        "median_abs_d": 12.437453560444034,
+        "max_abs_d": 53.41608618745111
+      },
+      "K": {
+        "median_abs_d": 4.349971234572552,
+        "max_abs_d": 23.327121089726013
+      },
+      "L": {
+        "status": "insufficient right-hand rows in one domain",
+        "n_kaggle": 0,
+        "n_webcam": 0
+      },
+      "M": {
+        "median_abs_d": 5.905351489999152,
+        "max_abs_d": 119.38859974727211
+      },
+      "U": {
+        "status": "insufficient right-hand rows in one domain",
+        "n_kaggle": 1197,
+        "n_webcam": 0
+      },
+      "V": {
+        "status": "insufficient right-hand rows in one domain",
+        "n_kaggle": 1201,
+        "n_webcam": 0
+      }
+    },
+    "verdict": "INCONCLUSIVE -- no monotonic relationship between per-class right-hand feature shift magnitude and cross-domain recall; the test is itself confounded by handedness composition determining which rows are even comparable. Do not report as a confirmed cause."
   }
 }

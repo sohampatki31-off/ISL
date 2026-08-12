@@ -81,30 +81,30 @@ def discover_classes(root_dir):
     return classes, skipped
 
 
-def build_detector():
+def build_detector(confidence=0.5):
     if not os.path.exists(LANDMARKER_MODEL_PATH):
         raise FileNotFoundError(f"'{LANDMARKER_MODEL_PATH}' not found next to this script.")
     base_options = mp_python.BaseOptions(model_asset_path=LANDMARKER_MODEL_PATH)
     options = vision.HandLandmarkerOptions(
         base_options=base_options,
         num_hands=2,
-        # NOTE: isl_main.py's live pipeline uses 0.7 for these two thresholds,
-        # specifically to gate out weaker detections. This importer (and
-        # process_images.py / test_camera.py) use MediaPipe's 0.5 default
-        # instead, so Kaggle-derived rows in isl_dataset.csv were accepted
-        # under a looser detection gate than live-captured rows. Flagged by
-        # the Phase 1 research audit, not retroactively fixable without
-        # re-running detection against the original Kaggle images.
-        min_hand_detection_confidence=0.5,
-        min_hand_presence_confidence=0.5,
-        min_tracking_confidence=0.5,
+        # Default 0.5 preserves the original isl_dataset_kaggle.csv exactly
+        # (reproducibility). Pass confidence=0.7 to match isl_main.py's live
+        # threshold -- this is the CVIP2026-research-upgrade-v2 controlled
+        # cross-source experiment (see analyze_domain_shift_controlled.py):
+        # re-detecting the SAME images at the SAME threshold the live app
+        # uses, to test whether the 0.5-vs-0.7 confound explains any of the
+        # cross-source accuracy gap.
+        min_hand_detection_confidence=confidence,
+        min_hand_presence_confidence=confidence,
+        min_tracking_confidence=confidence,
     )
     return vision.HandLandmarker.create_from_options(options)
 
 
-def extract_dataset(classes, out_csv):
-    print("\nInitializing MediaPipe Hand Landmarker...")
-    detector = build_detector()
+def extract_dataset(classes, out_csv, confidence=0.5):
+    print(f"\nInitializing MediaPipe Hand Landmarker (confidence={confidence})...")
+    detector = build_detector(confidence)
 
     rows = []
     burst_counter = 0
@@ -192,6 +192,10 @@ def main():
     parser.add_argument("--out-labels", default="labels_kaggle.pkl")
     parser.add_argument("--train", action="store_true", help="Also train + save a model from the resulting CSV.")
     parser.add_argument("--list-only", action="store_true", help="Only print discovered classes/skips; don't process images.")
+    parser.add_argument("--confidence", type=float, default=0.5,
+                         help="MediaPipe min_hand_detection/presence/tracking confidence (default 0.5, matching "
+                              "the original import). Pass 0.7 to match isl_main.py's live threshold for the "
+                              "controlled cross-source experiment.")
     args = parser.parse_args()
 
     if not os.path.isdir(args.dir):
@@ -215,7 +219,7 @@ def main():
         print("\n--list-only set: stopping before feature extraction.")
         return
 
-    out_csv = extract_dataset(classes, args.out_csv)
+    out_csv = extract_dataset(classes, args.out_csv, confidence=args.confidence)
     if out_csv and args.train:
         train_from_csv(out_csv, args.out_model, args.out_labels)
 
