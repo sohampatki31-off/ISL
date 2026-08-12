@@ -2,171 +2,827 @@
   "environment": {
     "python": "3.14.0",
     "platform": "Windows-11-10.0.26200-SP0",
-    "processor": "Intel(R) Core(TM) Ultra 5 125H",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
     "sklearn": "1.8.0",
     "numpy": "2.4.2",
     "scipy": "1.17.1"
   },
   "descriptive": {
-    "n_samples": 842,
-    "n_classes_present": 18,
+    "n_samples_raw": 31806,
+    "n_classes_present_raw": 31,
     "n_classes_target": 35,
-    "missing_classes": [
-      "H",
-      "HELP",
-      "N",
+    "missing_classes_35": [
       "NO",
-      "O",
-      "P",
       "PLEASE",
-      "Q",
-      "R",
-      "S",
       "SORRY",
-      "T",
-      "W",
-      "X",
-      "Y",
-      "YES",
-      "Z"
+      "YES"
     ],
-    "class_counts": {
-      "A": 47,
-      "B": 108,
-      "C": 126,
-      "D": 105,
-      "E": 55,
-      "F": 30,
-      "G": 35,
-      "GOOD": 39,
-      "HELLO": 38,
-      "I": 21,
-      "J": 17,
-      "K": 19,
-      "L": 44,
-      "LOVE": 17,
-      "M": 22,
-      "THANKYOU": 18,
-      "U": 33,
-      "V": 68
+    "n_exact_duplicates_removed": 118,
+    "exact_duplicates_removed_by_domain": {
+      "webcam": 117,
+      "kaggle": 1
     },
-    "burst_counts_per_class": {
-      "A": 1,
-      "B": 1,
-      "C": 1,
-      "D": 1,
-      "E": 2,
-      "F": 1,
-      "G": 1,
-      "GOOD": 1,
-      "HELLO": 1,
-      "I": 1,
-      "J": 1,
-      "K": 1,
-      "L": 1,
-      "LOVE": 1,
-      "M": 1,
-      "THANKYOU": 1,
-      "U": 1,
-      "V": 1
+    "n_samples_deduped": 31688,
+    "n_classes_deduped": 31,
+    "class_counts_deduped": {
+      "A": 1247,
+      "B": 1242,
+      "C": 1355,
+      "D": 1305,
+      "E": 1255,
+      "F": 1230,
+      "G": 1234,
+      "GOOD": 39,
+      "H": 1200,
+      "HELLO": 70,
+      "HELP": 21,
+      "I": 1399,
+      "J": 1217,
+      "K": 1219,
+      "L": 1244,
+      "LOVE": 37,
+      "M": 1240,
+      "N": 1200,
+      "O": 1313,
+      "P": 1187,
+      "Q": 778,
+      "R": 1200,
+      "S": 853,
+      "T": 1200,
+      "THANKYOU": 18,
+      "U": 1232,
+      "V": 1353,
+      "W": 1200,
+      "X": 1200,
+      "Y": 1200,
+      "Z": 1200
+    },
+    "domain_counts_deduped": {
+      "webcam": 816,
+      "kaggle": 30872
     },
     "unique_signer_ids": [
+      "kaggle_unknown",
+      "unassigned_signer",
       "unknown_legacy"
     ],
     "unique_session_ids": [
+      "kaggle_import",
+      "unassigned_session",
       "unknown_legacy"
     ],
-    "classes_with_ge2_bursts": [
-      "E"
-    ]
+    "signer_session_caveat": "These are placeholder source tags (unknown_legacy / kaggle_unknown / unassigned_signer / kaggle_import / unassigned_session), not real signer or session identities. No signer-independent or session-independent claim is made anywhere in this evaluation."
   },
   "near_duplication": {
-    "intra_burst_mean": 0.3538430042337133,
-    "intra_burst_median": 0.13705368613000385,
-    "intra_burst_n_pairs": 823,
-    "cross_burst_mean": 3.031754979503053,
-    "cross_burst_median": 2.124349543326588,
-    "cross_burst_n_pairs": 165,
-    "cross_over_intra_ratio": 8.568079468092519,
-    "exact_duplicate_fraction": 0.1421628189550425,
-    "caveat": "cross-burst pairs come almost entirely from the single class (E) with >1 burst -- this estimate is not class-balanced and should not be read as precise; it is directionally indicative only, given n_pairs above."
+    "n_classes_with_ge2_bursts": 29,
+    "intra_burst_mean": 0.34656011551929505,
+    "intra_burst_n_pairs": 764,
+    "cross_burst_mean": 2.551353641521435,
+    "cross_burst_n_pairs": 8238,
+    "cross_over_intra_ratio": 7.361936724018046,
+    "caveat": "burst_id is near-unique per row for the Kaggle-sourced majority of the data (mean group size ~1.03); this diagnostic is only informative for the small legacy-webcam subset that actually has multi-row bursts."
   },
   "leakage_demo": {
     "naive_random_split": {
-      "accuracy": 1.0,
-      "macro_f1": 1.0,
-      "n_test": 169
+      "accuracy": 0.9990533291259073,
+      "macro_f1": 0.9990139223578209,
+      "n_test": 6338
     },
     "burst_disjoint_split": {
-      "accuracy": 0.0,
-      "macro_f1": 0.0,
-      "n_test": 372,
-      "classes_missing_from_train": [
-        "B",
-        "C",
-        "D",
-        "U"
-      ]
+      "accuracy": 0.9724094685687412,
+      "macro_f1": 0.8946521609484239,
+      "n_test": 6379,
+      "n_classes_evaluated": 29,
+      "classes_missing_from_train": []
     },
-    "interpretation": "The near-100% naive-split accuracy is an artifact of near-duplicate frames from the same continuous recording burst appearing on both sides of the split. The burst-disjoint collapse is not a measure of poor model quality either -- most classes have only ONE recording burst, so holding a burst out removes that class from training entirely. Neither number estimates real-world generalization; see docs/data_collection_protocol.md."
+    "interpretation": "Unlike the pre-Kaggle-merge dataset (where burst-disjoint splitting collapsed accuracy to 0% because almost every class had exactly one burst), burst-disjoint and naive-random splits now give SIMILAR results. This is not because leakage was fixed -- it's because burst_id is near-unique per row for 97% of the current data (Kaggle-sourced), so grouping by burst barely constrains the split at all. burst_id is not a meaningful leakage control at the current dataset composition."
   },
   "repeated_split_stats": {
-    "n_seeds": 20,
-    "accuracy_mean": 0.9994082840236687,
-    "accuracy_std": 0.002579230144106896,
+    "n_seeds": 10,
+    "accuracy_mean": 0.9981382139476175,
+    "accuracy_std": 0.0007787291056644331,
     "accuracy_bootstrap_95ci": [
-      0.9982248520710059,
-      1.0
+      0.9976648785105711,
+      0.998611549384664
     ],
-    "macro_f1_mean": 0.9995756172839506,
-    "macro_f1_std": 0.0018498413726445967,
-    "same_burst_1nn_collision_rate_mean": 1.0,
-    "same_burst_1nn_collision_rate_std": 0.0,
-    "same_burst_1nn_collision_rate_bootstrap_95ci": [
-      1.0,
-      1.0
-    ],
-    "interpretation": "A same-burst 1-NN collision rate this high means the reported accuracy is dominated by near-duplicate matching within a burst, not sign discrimination.",
-    "pseudo_replication_caveat": "The 20 seeds are overlapping 80/20 resamples of the same 842 rows, not 20 independent datasets -- this measures sensitivity to split randomness, not true sampling variability, and likely understates real-world variance."
+    "macro_f1_mean": 0.9958363227857902,
+    "macro_f1_std": 0.001818427437254528,
+    "same_domain_1nn_rate_mean": 0.9999211107604922,
+    "same_domain_1nn_rate_std": 0.00010584102133951152,
+    "pseudo_replication_caveat": "The 10 seeds are overlapping 80/20 resamples of the same 31688 deduplicated rows, not 10 independent datasets -- this measures sensitivity to split randomness, not true sampling variability."
   },
-  "insample_classifier_comparison": {
+  "cross_source_evaluation": {
+    "shared_classes": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "U",
+      "V"
+    ],
+    "domain_counts": {
+      "webcam": 816,
+      "kaggle": 30872
+    },
+    "in_domain_kaggle": {
+      "n_train": 11998,
+      "n_test": 5143,
+      "accuracy": 0.9992222438265603,
+      "macro_f1": 0.9991969959205812,
+      "per_class": {
+        "A": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 338
+        },
+        "B": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 359
+        },
+        "C": {
+          "precision": 0.9974554707379135,
+          "recall": 1.0,
+          "f1": 0.9987261146496815,
+          "support": 392
+        },
+        "D": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 353
+        },
+        "E": {
+          "precision": 1.0,
+          "recall": 0.9972602739726028,
+          "f1": 0.9986282578875172,
+          "support": 365
+        },
+        "F": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 366
+        },
+        "G": {
+          "precision": 0.9913793103448276,
+          "recall": 1.0,
+          "f1": 0.9956709956709957,
+          "support": 345
+        },
+        "I": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 409
+        },
+        "J": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 353
+        },
+        "K": {
+          "precision": 1.0,
+          "recall": 0.9915014164305949,
+          "f1": 0.9957325746799431,
+          "support": 353
+        },
+        "L": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 372
+        },
+        "M": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 354
+        },
+        "U": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 371
+        },
+        "V": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 413
+        }
+      },
+      "accuracy_95ci": [
+        0.9984444876531208,
+        0.9998055609566401
+      ],
+      "macro_f1_95ci": [
+        0.998330471770426,
+        0.9998148496709844
+      ]
+    },
+    "in_domain_webcam": {
+      "n_train": 407,
+      "n_test": 224,
+      "accuracy": 0.46875,
+      "macro_f1": 0.20954077211899488,
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "B": {
+          "precision": 0.5454545454545454,
+          "recall": 1.0,
+          "f1": 0.7058823529411765,
+          "support": 24
+        },
+        "C": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "D": {
+          "precision": 0.7407407407407407,
+          "recall": 1.0,
+          "f1": 0.851063829787234,
+          "support": 60
+        },
+        "E": {
+          "precision": 0.3684210526315789,
+          "recall": 1.0,
+          "f1": 0.5384615384615384,
+          "support": 21
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 30
+        },
+        "G": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 35
+        },
+        "I": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 21
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "L": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "M": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 33
+        },
+        "V": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        }
+      },
+      "accuracy_95ci": [
+        0.40625,
+        0.5357142857142857
+      ],
+      "macro_f1_95ci": [
+        0.18947641542988378,
+        0.24224126932838852
+      ]
+    },
+    "kaggle_to_webcam": {
+      "n_train": 17141,
+      "n_test": 631,
+      "accuracy": 0.5039619651347068,
+      "macro_f1": 0.3120675063146931,
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 47
+        },
+        "B": {
+          "precision": 0.43103448275862066,
+          "recall": 0.9259259259259259,
+          "f1": 0.5882352941176471,
+          "support": 54
+        },
+        "C": {
+          "precision": 0.07352941176470588,
+          "recall": 0.07936507936507936,
+          "f1": 0.07633587786259542,
+          "support": 63
+        },
+        "D": {
+          "precision": 0.7313432835820896,
+          "recall": 0.9333333333333333,
+          "f1": 0.8200836820083682,
+          "support": 105
+        },
+        "E": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 55
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 30
+        },
+        "G": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 35
+        },
+        "I": {
+          "precision": 0.3088235294117647,
+          "recall": 1.0,
+          "f1": 0.47191011235955055,
+          "support": 21
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 17
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 19
+        },
+        "L": {
+          "precision": 0.55,
+          "recall": 1.0,
+          "f1": 0.7096774193548387,
+          "support": 44
+        },
+        "M": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 40
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 33
+        },
+        "V": {
+          "precision": 0.5555555555555556,
+          "recall": 0.9558823529411765,
+          "f1": 0.7027027027027027,
+          "support": 68
+        }
+      },
+      "accuracy_95ci": [
+        0.4659270998415214,
+        0.5404120443740095
+      ],
+      "macro_f1_95ci": [
+        0.29583153473399204,
+        0.32543355594604734
+      ]
+    },
+    "webcam_to_kaggle": {
+      "n_train": 631,
+      "n_test": 17141,
+      "accuracy": 0.29409019310425294,
+      "macro_f1": 0.21118307672376252,
+      "per_class": {
+        "A": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "B": {
+          "precision": 0.20646067415730338,
+          "recall": 0.98989898989899,
+          "f1": 0.34166182452062754,
+          "support": 1188
+        },
+        "C": {
+          "precision": 0.6808510638297872,
+          "recall": 0.02476780185758514,
+          "f1": 0.04779686333084392,
+          "support": 1292
+        },
+        "D": {
+          "precision": 0.1924812030075188,
+          "recall": 0.4266666666666667,
+          "f1": 0.26528497409326424,
+          "support": 1200
+        },
+        "E": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "F": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "G": {
+          "precision": 0.30874958095876637,
+          "recall": 0.76814011676397,
+          "f1": 0.44045911047345765,
+          "support": 1199
+        },
+        "I": {
+          "precision": 0.8558172733761599,
+          "recall": 0.8701015965166908,
+          "f1": 0.8629003238575027,
+          "support": 1378
+        },
+        "J": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "K": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1200
+        },
+        "L": {
+          "precision": 0.9950248756218906,
+          "recall": 1.0,
+          "f1": 0.9975062344139651,
+          "support": 1200
+        },
+        "M": {
+          "precision": 0.0011148272017837235,
+          "recall": 0.0008333333333333334,
+          "f1": 0.0009537434430138292,
+          "support": 1200
+        },
+        "U": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1199
+        },
+        "V": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1285
+        }
+      },
+      "accuracy_95ci": [
+        0.2872046555043463,
+        0.3010326118662855
+      ],
+      "macro_f1_95ci": [
+        0.20844230576193254,
+        0.21390534752320586
+      ]
+    },
+    "interpretation": "in_domain_* results show what accuracy this feature representation/classifier achieves when train and test come from the same source. kaggle_to_webcam and webcam_to_kaggle show what happens when the model has never seen the OTHER source at all. A large drop from in-domain to cross-domain accuracy is evidence of genuine domain shift (capture device / lighting / temporal smoothing / detection-threshold differences), not of the model failing to learn the sign shapes themselves."
+  },
+  "handedness_analysis": {
+    "distribution": {
+      "both": 16301,
+      "right_only": 9699,
+      "left_only": 5688
+    },
+    "held_out_breakdown_by_test_subset_handedness": {
+      "both": {
+        "n_test": 3261,
+        "accuracy": 1.0,
+        "macro_f1": 1.0
+      },
+      "right_only": {
+        "n_test": 1937,
+        "accuracy": 0.9989674754775426,
+        "macro_f1": 0.9978868438593389
+      },
+      "left_only": {
+        "n_test": 1140,
+        "accuracy": 0.9964912280701754,
+        "macro_f1": 0.9773250766227839
+      }
+    },
+    "caveat": "Handedness here is inferred from which hand-feature block is non-zero at capture time, not ground-truth sign linguistics (some classes are inherently one-handed signs; this mixes 'sign is one-handed' with 'only one hand was detected'). A single classifier trained on the full mixed-handedness training set is evaluated separately on each test subset, so this measures whether ONE model generalizes evenly across handedness conditions, not whether per-handedness specialist models would do better."
+  },
+  "classifier_comparison": {
     "RandomForest(100,d15)": {
-      "accuracy": 1.0,
-      "macro_f1": 1.0,
-      "train_seconds": 0.22731490002479404,
-      "predict_latency_ms": 37.03938949998701
+      "accuracy": 0.9990533291259073,
+      "macro_f1": 0.9990139223578209,
+      "n_train": 25350,
+      "train_seconds": 3.484836499999801,
+      "predict_latency_ms": 52.89317200000369
     },
     "SVM-RBF(C=10)": {
-      "accuracy": 1.0,
-      "macro_f1": 1.0,
-      "train_seconds": 0.06141880000359379,
-      "predict_latency_ms": 0.13007500005187467
+      "accuracy": 0.9962133165036289,
+      "macro_f1": 0.9649064661650395,
+      "n_train": 5999,
+      "train_seconds": 0.18208529999992606,
+      "predict_latency_ms": 0.25218199999471835
     },
     "kNN(k=5)": {
-      "accuracy": 0.997624703087886,
-      "macro_f1": 0.9980562877759139,
-      "train_seconds": 0.002074600022751838,
-      "predict_latency_ms": 12.5071234999632
+      "accuracy": 0.9985799936888609,
+      "macro_f1": 0.9913430836179925,
+      "n_train": 25350,
+      "train_seconds": 0.03635989999929734,
+      "predict_latency_ms": 3.3514000000013766
+    },
+    "MLP(128,64)": {
+      "accuracy": 0.9996844430419691,
+      "macro_f1": 0.999720210117033,
+      "n_train": 25350,
+      "train_seconds": 25.229808400000366,
+      "predict_latency_ms": 0.20179999999527354
     }
   },
-  "insample_comparison_caveat": "Trained and evaluated on the SAME data (all of it) -- this measures whether each classifier's capacity suffices to fit the observed classes with this feature representation, not whether it generalizes to unseen signers/sessions. Latency is single-sample CPU inference on the development machine (see environment.processor), not the deployment device, and excludes MediaPipe detection time.",
-  "confusion_matrix_top_errors": [],
+  "classifier_comparison_caveat": "Held-out stratified 80/20 split (post-dedup). SVM-RBF trained on a stratified subsample capped at 6000 rows for tractability (RandomForest/kNN use the full 25350-row training set); this may understate SVM's achievable accuracy but doesn't invalidate the comparison's direction. Latency is single-sample CPU inference on the development machine, excludes MediaPipe detection time.",
+  "held_out_confusion": {
+    "top_errors": [
+      [
+        "Q",
+        "S",
+        2
+      ],
+      [
+        "B",
+        "O",
+        1
+      ],
+      [
+        "C",
+        "S",
+        1
+      ],
+      [
+        "O",
+        "S",
+        1
+      ],
+      [
+        "U",
+        "S",
+        1
+      ]
+    ],
+    "per_class": {
+      "A": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 249
+      },
+      "B": {
+        "precision": 1.0,
+        "recall": 0.9959677419354839,
+        "f1": 0.997979797979798,
+        "support": 248
+      },
+      "C": {
+        "precision": 1.0,
+        "recall": 0.996309963099631,
+        "f1": 0.9981515711645101,
+        "support": 271
+      },
+      "D": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 261
+      },
+      "E": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 251
+      },
+      "F": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 246
+      },
+      "G": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 247
+      },
+      "GOOD": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 8
+      },
+      "H": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "HELLO": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 14
+      },
+      "HELP": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 4
+      },
+      "I": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 280
+      },
+      "J": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 243
+      },
+      "K": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 244
+      },
+      "L": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 249
+      },
+      "LOVE": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 7
+      },
+      "M": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 248
+      },
+      "N": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "O": {
+        "precision": 0.9961977186311787,
+        "recall": 0.9961977186311787,
+        "f1": 0.9961977186311787,
+        "support": 263
+      },
+      "P": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 237
+      },
+      "Q": {
+        "precision": 1.0,
+        "recall": 0.9871794871794872,
+        "f1": 0.9935483870967742,
+        "support": 156
+      },
+      "R": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "S": {
+        "precision": 0.9715909090909091,
+        "recall": 1.0,
+        "f1": 0.9855907780979827,
+        "support": 171
+      },
+      "T": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "THANKYOU": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 4
+      },
+      "U": {
+        "precision": 1.0,
+        "recall": 0.9959349593495935,
+        "f1": 0.9979633401221996,
+        "support": 246
+      },
+      "V": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 271
+      },
+      "W": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "X": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "Y": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "Z": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      }
+    }
+  },
   "feature_ablation": {
     "full_132": {
       "n_features": 132,
-      "accuracy": 1.0,
-      "macro_f1": 1.0
+      "accuracy": 0.9990533291259073,
+      "macro_f1": 0.9990139223578209
     },
     "no_relative_126": {
       "n_features": 126,
-      "accuracy": 1.0,
-      "macro_f1": 1.0
+      "accuracy": 0.9990533291259073,
+      "macro_f1": 0.9990408433212271
     },
     "right_hand_only_63": {
       "n_features": 63,
-      "accuracy": 0.9536817102137767,
-      "macro_f1": 0.9362101096234822
+      "accuracy": 0.8589460397601767,
+      "macro_f1": 0.8297217752099842
     }
   },
-  "feature_ablation_caveat": "In-sample fit only, same caveat as section 4."
+  "feature_ablation_caveat": "Held-out stratified 80/20 split, same split as section 6/7."
 }

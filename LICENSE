@@ -1,8 +1,29 @@
 Copyright (c) 2026 sohampatki31-off. All rights reserved.
 
-This repository and its contents (source code, models, datasets, and
-documentation) are made available for viewing purposes only. No license,
-express or implied, is granted to any person to copy, modify, merge,
-publish, distribute, sublicense, or sell copies of this software or any
-part of it, or to use it for any purpose, without prior written permission
-from the copyright holder.
+This repository and its contents (source code, models, and documentation)
+are made available for viewing purposes only. No license, express or
+implied, is granted to any person to copy, modify, merge, publish,
+distribute, sublicense, or sell copies of this software or any part of
+it, or to use it for any purpose, without prior written permission from
+the copyright holder.
+
+## Third-party dataset attribution
+
+`isl_dataset.csv` is derived in large part (~97% of rows, via
+`import_kaggle_dataset.py`) from:
+
+> "Indian Sign Language (ISL)" dataset by prathumarikeri, Kaggle,
+> https://www.kaggle.com/datasets/prathumarikeri/indian-sign-language-isl,
+> licensed CC BY-SA 4.0 (Creative Commons Attribution-ShareAlike 4.0).
+
+The "all rights reserved" statement above applies to this project's own
+source code, trained model weights, and documentation. It does NOT
+override the CC BY-SA 4.0 terms attached to the portion of
+`isl_dataset.csv` derived from the dataset credited above: any
+redistribution of that data (or of a derivative dataset/model trained
+substantially from it) must itself carry attribution to the original
+dataset and be licensed under CC BY-SA 4.0 or a compatible share-alike
+license, regardless of the license chosen for this repository's own code.
+The hand-recorded portion of `isl_dataset.csv` (`session_id` values other
+than `kaggle_import` — see `docs/data_collection_protocol.md`) is not
+subject to this third-party license.

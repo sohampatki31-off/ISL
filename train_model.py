@@ -38,6 +38,22 @@ X = np.array(X)
 y = np.array(y, dtype=object)          # object dtype: keeps plain python str,
 groups = np.array(groups, dtype=object)  # avoids "np.str_('...')" in printed output
 
+# ── Drop exact-duplicate feature rows ────────────────────────────────
+# See evaluate.py's dedupe_exact / results/RESULTS.md section 1b: ~118 rows
+# in isl_dataset.csv are byte-identical feature vectors (mostly repeated
+# frames from the same legacy recording burst). Training the deployed
+# model on duplicates adds nothing and lets a handful of frames get
+# over-weighted; drop them the same way evaluate.py does before any split.
+_seen, _keep = set(), []
+for _i in range(len(X)):
+    _key = X[_i].tobytes()
+    if _key not in _seen:
+        _seen.add(_key)
+        _keep.append(_i)
+if len(_keep) < len(X):
+    print(f"Dropping {len(X) - len(_keep)} exact-duplicate feature rows before training.")
+    X, y, groups = X[_keep], y[_keep], groups[_keep]
+
 print(f"Total samples loaded: {len(X)}")
 unique, counts = np.unique(y, return_counts=True)
 print(f"Classes found: {list(unique)}")

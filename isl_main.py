@@ -751,6 +751,12 @@ def detector_loop():
                 # default) — these gate whether a hand is "real" at all, and
                 # loosening them would let weaker detections feed noisier
                 # landmarks into both training data and live classification.
+                # NOTE: process_images.py / import_kaggle_dataset.py / test_camera.py
+                # all still use 0.5 -- this cross-script inconsistency means
+                # Kaggle/offline-imported rows were accepted under a looser
+                # detection gate than anything the live app records or sees at
+                # inference time. Documented, not yet reconciled -- see the
+                # Phase 1 audit findings in results/RESULTS.md.
                 min_hand_detection_confidence=0.7,
                 min_hand_presence_confidence=0.7,
                 # Tracking confidence only decides whether the pipeline keeps

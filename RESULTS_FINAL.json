@@ -1,0 +1,1355 @@
+{
+  "generated": "2026-08-12",
+  "source_task": "CVIP2026 research-upgrade audit, phases 1-10",
+  "evidence_classification_key": {
+    "REAL": "Computed from isl_dataset.csv as it exists today, by a script in this repo, reproducible.",
+    "MANUAL": "A true, factual finding from a one-time manual inspection outside the repo (not auto-reproducible).",
+    "HYPOTHESIS": "A plausible, evidence-motivated explanation NOT experimentally confirmed.",
+    "FUTURE_WORK": "Designed/specified but not executed -- zero data exists for this."
+  },
+  "dataset": {
+    "_evidence": "REAL",
+    "n_samples_raw": 31806,
+    "n_samples_deduped": 31688,
+    "n_classes_deduped": 31,
+    "n_classes_target": 35,
+    "missing_classes": [
+      "NO",
+      "PLEASE",
+      "SORRY",
+      "YES"
+    ],
+    "class_counts": {
+      "A": 1247,
+      "B": 1242,
+      "C": 1355,
+      "D": 1305,
+      "E": 1255,
+      "F": 1230,
+      "G": 1234,
+      "GOOD": 39,
+      "H": 1200,
+      "HELLO": 70,
+      "HELP": 21,
+      "I": 1399,
+      "J": 1217,
+      "K": 1219,
+      "L": 1244,
+      "LOVE": 37,
+      "M": 1240,
+      "N": 1200,
+      "O": 1313,
+      "P": 1187,
+      "Q": 778,
+      "R": 1200,
+      "S": 853,
+      "T": 1200,
+      "THANKYOU": 18,
+      "U": 1232,
+      "V": 1353,
+      "W": 1200,
+      "X": 1200,
+      "Y": 1200,
+      "Z": 1200
+    },
+    "domain_counts": {
+      "webcam": 816,
+      "kaggle": 30872
+    },
+    "exact_duplicates_removed": 118,
+    "signer_session_caveat": "These are placeholder source tags (unknown_legacy / kaggle_unknown / unassigned_signer / kaggle_import / unassigned_session), not real signer or session identities. No signer-independent or session-independent claim is made anywhere in this evaluation.",
+    "kaggle_source": {
+      "name": "Indian Sign Language (ISL)",
+      "author": "prathumarikeri",
+      "url": "https://www.kaggle.com/datasets/prathumarikeri/indian-sign-language-isl",
+      "license": "CC BY-SA 4.0",
+      "license_verified_by": "user, 2026-08-12, from the Kaggle dataset page (usability 8.75)"
+    },
+    "image_resolution_heterogeneity": {
+      "_evidence": "MANUAL",
+      "inspected_path": "C:\\Users\\Soham\\Downloads\\ISL_kaggle_extracted\\Indian",
+      "inspection_date": "2026-08-12",
+      "finding": "31/35 classes are uniformly 1200x 128x128px tightly-cropped hand photos; C/I/O/V additionally contain 90-247 extra images each from a different, much higher-resolution sub-source (640x480 or ~1088x1920), matching those same 4 classes' >1200-row counts in isl_dataset_kaggle.csv.",
+      "reproducible_from_repo_alone": false,
+      "status": "well-evidenced fact; NOT experimentally confirmed as a cause of the cross-domain gap"
+    }
+  },
+  "leakage_and_near_duplication": {
+    "_evidence": "REAL",
+    "near_duplication": {
+      "n_classes_with_ge2_bursts": 29,
+      "intra_burst_mean": 0.34656011551929505,
+      "intra_burst_n_pairs": 764,
+      "cross_burst_mean": 2.551353641521435,
+      "cross_burst_n_pairs": 8238,
+      "cross_over_intra_ratio": 7.361936724018046,
+      "caveat": "burst_id is near-unique per row for the Kaggle-sourced majority of the data (mean group size ~1.03); this diagnostic is only informative for the small legacy-webcam subset that actually has multi-row bursts."
+    },
+    "leakage_demo": {
+      "naive_random_split": {
+        "accuracy": 0.9990533291259073,
+        "macro_f1": 0.9990139223578209,
+        "n_test": 6338
+      },
+      "burst_disjoint_split": {
+        "accuracy": 0.9724094685687412,
+        "macro_f1": 0.8946521609484239,
+        "n_test": 6379,
+        "n_classes_evaluated": 29,
+        "classes_missing_from_train": []
+      },
+      "interpretation": "Unlike the pre-Kaggle-merge dataset (where burst-disjoint splitting collapsed accuracy to 0% because almost every class had exactly one burst), burst-disjoint and naive-random splits now give SIMILAR results. This is not because leakage was fixed -- it's because burst_id is near-unique per row for 97% of the current data (Kaggle-sourced), so grouping by burst barely constrains the split at all. burst_id is not a meaningful leakage control at the current dataset composition."
+    },
+    "repeated_split_stats": {
+      "n_seeds": 10,
+      "accuracy_mean": 0.9981382139476175,
+      "accuracy_std": 0.0007787291056644331,
+      "accuracy_bootstrap_95ci": [
+        0.9976648785105711,
+        0.998611549384664
+      ],
+      "macro_f1_mean": 0.9958363227857902,
+      "macro_f1_std": 0.001818427437254528,
+      "same_domain_1nn_rate_mean": 0.9999211107604922,
+      "same_domain_1nn_rate_std": 0.00010584102133951152,
+      "pseudo_replication_caveat": "The 10 seeds are overlapping 80/20 resamples of the same 31688 deduplicated rows, not 10 independent datasets -- this measures sensitivity to split randomness, not true sampling variability."
+    }
+  },
+  "cross_source_key_finding": {
+    "_evidence": "REAL",
+    "shared_classes": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "U",
+      "V"
+    ],
+    "domain_sizes": {
+      "n_kaggle": 17141,
+      "n_webcam": 631
+    },
+    "results": {
+      "shared_classes": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "U",
+        "V"
+      ],
+      "domain_counts": {
+        "webcam": 816,
+        "kaggle": 30872
+      },
+      "in_domain_kaggle": {
+        "n_train": 11998,
+        "n_test": 5143,
+        "accuracy": 0.9992222438265603,
+        "macro_f1": 0.9991969959205812,
+        "per_class": {
+          "A": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 338
+          },
+          "B": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 359
+          },
+          "C": {
+            "precision": 0.9974554707379135,
+            "recall": 1.0,
+            "f1": 0.9987261146496815,
+            "support": 392
+          },
+          "D": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 353
+          },
+          "E": {
+            "precision": 1.0,
+            "recall": 0.9972602739726028,
+            "f1": 0.9986282578875172,
+            "support": 365
+          },
+          "F": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 366
+          },
+          "G": {
+            "precision": 0.9913793103448276,
+            "recall": 1.0,
+            "f1": 0.9956709956709957,
+            "support": 345
+          },
+          "I": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 409
+          },
+          "J": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 353
+          },
+          "K": {
+            "precision": 1.0,
+            "recall": 0.9915014164305949,
+            "f1": 0.9957325746799431,
+            "support": 353
+          },
+          "L": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 372
+          },
+          "M": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 354
+          },
+          "U": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 371
+          },
+          "V": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 413
+          }
+        },
+        "accuracy_95ci": [
+          0.9984444876531208,
+          0.9998055609566401
+        ],
+        "macro_f1_95ci": [
+          0.998330471770426,
+          0.9998148496709844
+        ]
+      },
+      "in_domain_webcam": {
+        "n_train": 407,
+        "n_test": 224,
+        "accuracy": 0.46875,
+        "macro_f1": 0.20954077211899488,
+        "per_class": {
+          "A": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "B": {
+            "precision": 0.5454545454545454,
+            "recall": 1.0,
+            "f1": 0.7058823529411765,
+            "support": 24
+          },
+          "C": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "D": {
+            "precision": 0.7407407407407407,
+            "recall": 1.0,
+            "f1": 0.851063829787234,
+            "support": 60
+          },
+          "E": {
+            "precision": 0.3684210526315789,
+            "recall": 1.0,
+            "f1": 0.5384615384615384,
+            "support": 21
+          },
+          "F": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 30
+          },
+          "G": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 35
+          },
+          "I": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 21
+          },
+          "J": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "K": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "L": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "M": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "U": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 33
+          },
+          "V": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          }
+        },
+        "accuracy_95ci": [
+          0.40625,
+          0.5357142857142857
+        ],
+        "macro_f1_95ci": [
+          0.18947641542988378,
+          0.24224126932838852
+        ]
+      },
+      "kaggle_to_webcam": {
+        "n_train": 17141,
+        "n_test": 631,
+        "accuracy": 0.5039619651347068,
+        "macro_f1": 0.3120675063146931,
+        "per_class": {
+          "A": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 47
+          },
+          "B": {
+            "precision": 0.43103448275862066,
+            "recall": 0.9259259259259259,
+            "f1": 0.5882352941176471,
+            "support": 54
+          },
+          "C": {
+            "precision": 0.07352941176470588,
+            "recall": 0.07936507936507936,
+            "f1": 0.07633587786259542,
+            "support": 63
+          },
+          "D": {
+            "precision": 0.7313432835820896,
+            "recall": 0.9333333333333333,
+            "f1": 0.8200836820083682,
+            "support": 105
+          },
+          "E": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 55
+          },
+          "F": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 30
+          },
+          "G": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 35
+          },
+          "I": {
+            "precision": 0.3088235294117647,
+            "recall": 1.0,
+            "f1": 0.47191011235955055,
+            "support": 21
+          },
+          "J": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 17
+          },
+          "K": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 19
+          },
+          "L": {
+            "precision": 0.55,
+            "recall": 1.0,
+            "f1": 0.7096774193548387,
+            "support": 44
+          },
+          "M": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 40
+          },
+          "U": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 33
+          },
+          "V": {
+            "precision": 0.5555555555555556,
+            "recall": 0.9558823529411765,
+            "f1": 0.7027027027027027,
+            "support": 68
+          }
+        },
+        "accuracy_95ci": [
+          0.4659270998415214,
+          0.5404120443740095
+        ],
+        "macro_f1_95ci": [
+          0.29583153473399204,
+          0.32543355594604734
+        ]
+      },
+      "webcam_to_kaggle": {
+        "n_train": 631,
+        "n_test": 17141,
+        "accuracy": 0.29409019310425294,
+        "macro_f1": 0.21118307672376252,
+        "per_class": {
+          "A": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1200
+          },
+          "B": {
+            "precision": 0.20646067415730338,
+            "recall": 0.98989898989899,
+            "f1": 0.34166182452062754,
+            "support": 1188
+          },
+          "C": {
+            "precision": 0.6808510638297872,
+            "recall": 0.02476780185758514,
+            "f1": 0.04779686333084392,
+            "support": 1292
+          },
+          "D": {
+            "precision": 0.1924812030075188,
+            "recall": 0.4266666666666667,
+            "f1": 0.26528497409326424,
+            "support": 1200
+          },
+          "E": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1200
+          },
+          "F": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1200
+          },
+          "G": {
+            "precision": 0.30874958095876637,
+            "recall": 0.76814011676397,
+            "f1": 0.44045911047345765,
+            "support": 1199
+          },
+          "I": {
+            "precision": 0.8558172733761599,
+            "recall": 0.8701015965166908,
+            "f1": 0.8629003238575027,
+            "support": 1378
+          },
+          "J": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1200
+          },
+          "K": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1200
+          },
+          "L": {
+            "precision": 0.9950248756218906,
+            "recall": 1.0,
+            "f1": 0.9975062344139651,
+            "support": 1200
+          },
+          "M": {
+            "precision": 0.0011148272017837235,
+            "recall": 0.0008333333333333334,
+            "f1": 0.0009537434430138292,
+            "support": 1200
+          },
+          "U": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1199
+          },
+          "V": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1285
+          }
+        },
+        "accuracy_95ci": [
+          0.2872046555043463,
+          0.3010326118662855
+        ],
+        "macro_f1_95ci": [
+          0.20844230576193254,
+          0.21390534752320586
+        ]
+      },
+      "interpretation": "in_domain_* results show what accuracy this feature representation/classifier achieves when train and test come from the same source. kaggle_to_webcam and webcam_to_kaggle show what happens when the model has never seen the OTHER source at all. A large drop from in-domain to cross-domain accuracy is evidence of genuine domain shift (capture device / lighting / temporal smoothing / detection-threshold differences), not of the model failing to learn the sign shapes themselves."
+    },
+    "forensic_hypotheses": {
+      "h1_sample_size_control_REFUTED": {
+        "n_matched": 631,
+        "kaggle_matched_size_accuracy": 1.0,
+        "kaggle_matched_size_macro_f1": 1.0,
+        "full_size_kaggle_accuracy_reference": 0.9992,
+        "full_size_webcam_accuracy_reference": 0.4688
+      },
+      "h2_handedness_by_domain": {
+        "kaggle": {
+          "both": 0.4814,
+          "right_only": 0.3157,
+          "left_only": 0.203
+        },
+        "webcam": {
+          "both": 0.5388,
+          "right_only": 0.0349,
+          "left_only": 0.4263
+        }
+      },
+      "h3_feature_shift_within_class": {
+        "method": "within-class Cohen's d, averaged across classes (not a marginal/class-agnostic comparison)",
+        "n_classes_averaged": 9,
+        "top_shifted_features": [
+          [
+            "rx10",
+            19.577623298761832
+          ],
+          [
+            "rx11",
+            17.707795846261362
+          ],
+          [
+            "rx6",
+            16.33485879771744
+          ],
+          [
+            "rx9",
+            16.181242762304734
+          ],
+          [
+            "rx12",
+            16.139159645402266
+          ],
+          [
+            "rx7",
+            15.005109718341336
+          ],
+          [
+            "ry17",
+            14.848060134795519
+          ],
+          [
+            "ry18",
+            14.840770826354877
+          ],
+          [
+            "rx15",
+            14.475847211699962
+          ],
+          [
+            "rx14",
+            14.471111679092928
+          ]
+        ],
+        "median_abs_cohens_d": 6.71859293408474,
+        "n_kaggle_rows_compared": 13662,
+        "n_webcam_rows_compared": 362
+      },
+      "h4_per_class_recall_kaggle_to_webcam": {
+        "A": {
+          "n": 47,
+          "recall": 0.0
+        },
+        "B": {
+          "n": 54,
+          "recall": 0.9259259259259259
+        },
+        "C": {
+          "n": 63,
+          "recall": 0.07936507936507936
+        },
+        "D": {
+          "n": 105,
+          "recall": 0.9333333333333333
+        },
+        "E": {
+          "n": 55,
+          "recall": 0.0
+        },
+        "F": {
+          "n": 30,
+          "recall": 0.0
+        },
+        "G": {
+          "n": 35,
+          "recall": 1.0
+        },
+        "I": {
+          "n": 21,
+          "recall": 1.0
+        },
+        "J": {
+          "n": 17,
+          "recall": 0.0
+        },
+        "K": {
+          "n": 19,
+          "recall": 0.0
+        },
+        "L": {
+          "n": 44,
+          "recall": 1.0
+        },
+        "M": {
+          "n": 40,
+          "recall": 0.0
+        },
+        "U": {
+          "n": 33,
+          "recall": 0.0
+        },
+        "V": {
+          "n": 68,
+          "recall": 0.9558823529411765
+        }
+      },
+      "h5_pre_vs_post_mirroring_fix_persists": {
+        "unknown_legacy": {
+          "n": 22,
+          "recall": 0.0,
+          "predicted_as": {
+            "L": 22
+          }
+        },
+        "unassigned_session": {
+          "n": 18,
+          "recall": 0.0,
+          "predicted_as": {
+            "U": 13,
+            "C": 3,
+            "I": 2
+          }
+        }
+      },
+      "h6_handedness_composition_vs_recall": {
+        "A": {
+          "kaggle": {
+            "n": 1200,
+            "both": 89.4,
+            "right_only": 10.6
+          },
+          "webcam": {
+            "n": 47,
+            "both": 100.0
+          },
+          "recall_kaggle_to_webcam": 0.0
+        },
+        "B": {
+          "kaggle": {
+            "n": 1188,
+            "both": 75.8,
+            "right_only": 23.1,
+            "left_only": 1.0
+          },
+          "webcam": {
+            "n": 54,
+            "both": 98.1,
+            "right_only": 1.9
+          },
+          "recall_kaggle_to_webcam": 0.9259259259259259
+        },
+        "C": {
+          "kaggle": {
+            "n": 1292,
+            "right_only": 95.4,
+            "left_only": 4.6
+          },
+          "webcam": {
+            "n": 63,
+            "left_only": 100.0
+          },
+          "recall_kaggle_to_webcam": 0.07936507936507936
+        },
+        "D": {
+          "kaggle": {
+            "n": 1200,
+            "both": 100.0
+          },
+          "webcam": {
+            "n": 105,
+            "both": 93.3,
+            "left_only": 6.7
+          },
+          "recall_kaggle_to_webcam": 0.9333333333333333
+        },
+        "E": {
+          "kaggle": {
+            "n": 1200,
+            "both": 99.9,
+            "left_only": 0.1
+          },
+          "webcam": {
+            "n": 55,
+            "both": 83.6,
+            "left_only": 16.4
+          },
+          "recall_kaggle_to_webcam": 0.0
+        },
+        "F": {
+          "kaggle": {
+            "n": 1200,
+            "both": 100.0
+          },
+          "webcam": {
+            "n": 30,
+            "both": 100.0
+          },
+          "recall_kaggle_to_webcam": 0.0
+        },
+        "G": {
+          "kaggle": {
+            "n": 1199,
+            "left_only": 18.4,
+            "both": 80.8,
+            "right_only": 0.8
+          },
+          "webcam": {
+            "n": 35,
+            "both": 100.0
+          },
+          "recall_kaggle_to_webcam": 1.0
+        },
+        "I": {
+          "kaggle": {
+            "n": 1378,
+            "left_only": 87.0,
+            "right_only": 13.0
+          },
+          "webcam": {
+            "n": 21,
+            "left_only": 100.0
+          },
+          "recall_kaggle_to_webcam": 1.0
+        },
+        "J": {
+          "kaggle": {
+            "n": 1200,
+            "right_only": 100.0
+          },
+          "webcam": {
+            "n": 17,
+            "both": 100.0
+          },
+          "recall_kaggle_to_webcam": 0.0
+        },
+        "K": {
+          "kaggle": {
+            "n": 1200,
+            "both": 94.7,
+            "left_only": 5.3
+          },
+          "webcam": {
+            "n": 19,
+            "right_only": 100.0
+          },
+          "recall_kaggle_to_webcam": 0.0
+        },
+        "L": {
+          "kaggle": {
+            "n": 1200,
+            "left_only": 100.0
+          },
+          "webcam": {
+            "n": 44,
+            "left_only": 100.0
+          },
+          "recall_kaggle_to_webcam": 1.0
+        },
+        "M": {
+          "kaggle": {
+            "n": 1200,
+            "both": 46.4,
+            "left_only": 53.0,
+            "right_only": 0.6
+          },
+          "webcam": {
+            "n": 40,
+            "left_only": 60.0,
+            "both": 35.0,
+            "right_only": 5.0
+          },
+          "recall_kaggle_to_webcam": 0.0
+        },
+        "U": {
+          "kaggle": {
+            "n": 1199,
+            "right_only": 98.5,
+            "both": 1.3,
+            "left_only": 0.2
+          },
+          "webcam": {
+            "n": 33,
+            "left_only": 100.0
+          },
+          "recall_kaggle_to_webcam": 0.0
+        },
+        "V": {
+          "kaggle": {
+            "n": 1285,
+            "right_only": 93.5,
+            "left_only": 6.5
+          },
+          "webcam": {
+            "n": 68,
+            "left_only": 100.0
+          },
+          "recall_kaggle_to_webcam": 0.9558823529411765
+        }
+      }
+    }
+  },
+  "candidate_fix_phase5": {
+    "_evidence": "REAL",
+    "description": "Hand-slot-agnostic rotation/reflection-invariant angle features (41-d) vs. raw (132-d)",
+    "results": {
+      "raw_132": {
+        "kaggle_to_webcam_accuracy": 0.5039619651347068,
+        "kaggle_to_webcam_macro_f1": 0.3120675063146931,
+        "kaggle_to_webcam_ci": {
+          "accuracy_95ci": [
+            0.4659270998415214,
+            0.5404120443740095
+          ],
+          "macro_f1_95ci": [
+            0.29583153473399204,
+            0.32543355594604734
+          ]
+        },
+        "webcam_to_kaggle_accuracy": 0.29409019310425294,
+        "webcam_to_kaggle_macro_f1": 0.21118307672376252,
+        "webcam_to_kaggle_ci": {
+          "accuracy_95ci": [
+            0.2872046555043463,
+            0.3010326118662855
+          ],
+          "macro_f1_95ci": [
+            0.20844230576193254,
+            0.21390534752320586
+          ]
+        },
+        "per_class_recall_kaggle_to_webcam": {
+          "A": 0.0,
+          "B": 0.9259259259259259,
+          "C": 0.07936507936507936,
+          "D": 0.9333333333333333,
+          "E": 0.0,
+          "F": 0.0,
+          "G": 1.0,
+          "I": 1.0,
+          "J": 0.0,
+          "K": 0.0,
+          "L": 1.0,
+          "M": 0.0,
+          "U": 0.0,
+          "V": 0.9558823529411765
+        }
+      },
+      "invariant_41": {
+        "kaggle_to_webcam_accuracy": 0.49128367670364503,
+        "kaggle_to_webcam_macro_f1": 0.36064496112136835,
+        "kaggle_to_webcam_ci": {
+          "accuracy_95ci": [
+            0.4532488114104596,
+            0.5309033280507132
+          ],
+          "macro_f1_95ci": [
+            0.3335950035277289,
+            0.3842412304031434
+          ]
+        },
+        "webcam_to_kaggle_accuracy": 0.28621433988682105,
+        "webcam_to_kaggle_macro_f1": 0.3000319542346538,
+        "webcam_to_kaggle_ci": {
+          "accuracy_95ci": [
+            0.2792719211247885,
+            0.29298173968846625
+          ],
+          "macro_f1_95ci": [
+            0.29372992379031687,
+            0.3063427540634796
+          ]
+        },
+        "per_class_recall_kaggle_to_webcam": {
+          "A": 0.0425531914893617,
+          "B": 1.0,
+          "C": 0.7142857142857143,
+          "D": 0.3238095238095238,
+          "E": 0.0,
+          "F": 0.03333333333333333,
+          "G": 1.0,
+          "I": 0.5238095238095238,
+          "J": 0.0,
+          "K": 0.0,
+          "L": 1.0,
+          "M": 0.4,
+          "U": 0.0,
+          "V": 1.0
+        }
+      },
+      "handslot_agnostic_41": {
+        "kaggle_to_webcam_accuracy": 0.6212361331220285,
+        "kaggle_to_webcam_macro_f1": 0.4581188139717212,
+        "kaggle_to_webcam_ci": {
+          "accuracy_95ci": [
+            0.5832012678288431,
+            0.659270998415214
+          ],
+          "macro_f1_95ci": [
+            0.43614744240536163,
+            0.47898614226926967
+          ]
+        },
+        "webcam_to_kaggle_accuracy": 0.320693075083134,
+        "webcam_to_kaggle_macro_f1": 0.2731441616773022,
+        "webcam_to_kaggle_ci": {
+          "accuracy_95ci": [
+            0.3134006184003267,
+            0.3275771541917041
+          ],
+          "macro_f1_95ci": [
+            0.2672689933627585,
+            0.2788475571441935
+          ]
+        },
+        "per_class_recall_kaggle_to_webcam": {
+          "A": 0.0,
+          "B": 1.0,
+          "C": 0.9841269841269841,
+          "D": 0.7047619047619048,
+          "E": 0.0,
+          "F": 0.0,
+          "G": 0.9714285714285714,
+          "I": 1.0,
+          "J": 0.0,
+          "K": 0.0,
+          "L": 1.0,
+          "M": 0.425,
+          "U": 0.5454545454545454,
+          "V": 1.0
+        }
+      },
+      "within_domain_sanity_check": {
+        "raw_132": {
+          "accuracy": 0.99915611814346,
+          "macro_f1": 0.9991613383151128
+        },
+        "invariant_41": {
+          "accuracy": 0.99915611814346,
+          "macro_f1": 0.9991723659835329
+        },
+        "handslot_agnostic_41": {
+          "accuracy": 0.9983122362869198,
+          "macro_f1": 0.9983112944849312
+        }
+      }
+    },
+    "verdict": "Statistically significant (non-overlapping 95% CIs) partial improvement in both cross-domain directions; recovers U and M classes; A/E/F/J/K remain at 0% recall -- NOT a full fix."
+  },
+  "handedness_analysis": {
+    "_evidence": "REAL",
+    "distribution": {
+      "both": 16301,
+      "right_only": 9699,
+      "left_only": 5688
+    },
+    "held_out_breakdown_by_test_subset_handedness": {
+      "both": {
+        "n_test": 3261,
+        "accuracy": 1.0,
+        "macro_f1": 1.0
+      },
+      "right_only": {
+        "n_test": 1937,
+        "accuracy": 0.9989674754775426,
+        "macro_f1": 0.9978868438593389
+      },
+      "left_only": {
+        "n_test": 1140,
+        "accuracy": 0.9964912280701754,
+        "macro_f1": 0.9773250766227839
+      }
+    },
+    "caveat": "Handedness here is inferred from which hand-feature block is non-zero at capture time, not ground-truth sign linguistics (some classes are inherently one-handed signs; this mixes 'sign is one-handed' with 'only one hand was detected'). A single classifier trained on the full mixed-handedness training set is evaluated separately on each test subset, so this measures whether ONE model generalizes evenly across handedness conditions, not whether per-handedness specialist models would do better."
+  },
+  "classifier_comparison": {
+    "_evidence": "REAL",
+    "RandomForest(100,d15)": {
+      "accuracy": 0.9990533291259073,
+      "macro_f1": 0.9990139223578209,
+      "n_train": 25350,
+      "train_seconds": 3.484836499999801,
+      "predict_latency_ms": 52.89317200000369
+    },
+    "SVM-RBF(C=10)": {
+      "accuracy": 0.9962133165036289,
+      "macro_f1": 0.9649064661650395,
+      "n_train": 5999,
+      "train_seconds": 0.18208529999992606,
+      "predict_latency_ms": 0.25218199999471835
+    },
+    "kNN(k=5)": {
+      "accuracy": 0.9985799936888609,
+      "macro_f1": 0.9913430836179925,
+      "n_train": 25350,
+      "train_seconds": 0.03635989999929734,
+      "predict_latency_ms": 3.3514000000013766
+    },
+    "MLP(128,64)": {
+      "accuracy": 0.9996844430419691,
+      "macro_f1": 0.999720210117033,
+      "n_train": 25350,
+      "train_seconds": 25.229808400000366,
+      "predict_latency_ms": 0.20179999999527354
+    },
+    "caveat": "Held-out stratified 80/20 split (post-dedup). SVM-RBF trained on a stratified subsample capped at 6000 rows for tractability (RandomForest/kNN use the full 25350-row training set); this may understate SVM's achievable accuracy but doesn't invalidate the comparison's direction. Latency is single-sample CPU inference on the development machine, excludes MediaPipe detection time."
+  },
+  "feature_ablation": {
+    "_evidence": "REAL",
+    "full_132": {
+      "n_features": 132,
+      "accuracy": 0.9990533291259073,
+      "macro_f1": 0.9990139223578209
+    },
+    "no_relative_126": {
+      "n_features": 126,
+      "accuracy": 0.9990533291259073,
+      "macro_f1": 0.9990408433212271
+    },
+    "right_hand_only_63": {
+      "n_features": 63,
+      "accuracy": 0.8589460397601767,
+      "macro_f1": 0.8297217752099842
+    },
+    "caveat": "Held-out stratified 80/20 split, same split as section 6/7."
+  },
+  "held_out_confusion": {
+    "_evidence": "REAL",
+    "top_errors": [
+      [
+        "Q",
+        "S",
+        2
+      ],
+      [
+        "B",
+        "O",
+        1
+      ],
+      [
+        "C",
+        "S",
+        1
+      ],
+      [
+        "O",
+        "S",
+        1
+      ],
+      [
+        "U",
+        "S",
+        1
+      ]
+    ],
+    "per_class": {
+      "A": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 249
+      },
+      "B": {
+        "precision": 1.0,
+        "recall": 0.9959677419354839,
+        "f1": 0.997979797979798,
+        "support": 248
+      },
+      "C": {
+        "precision": 1.0,
+        "recall": 0.996309963099631,
+        "f1": 0.9981515711645101,
+        "support": 271
+      },
+      "D": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 261
+      },
+      "E": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 251
+      },
+      "F": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 246
+      },
+      "G": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 247
+      },
+      "GOOD": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 8
+      },
+      "H": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "HELLO": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 14
+      },
+      "HELP": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 4
+      },
+      "I": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 280
+      },
+      "J": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 243
+      },
+      "K": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 244
+      },
+      "L": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 249
+      },
+      "LOVE": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 7
+      },
+      "M": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 248
+      },
+      "N": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "O": {
+        "precision": 0.9961977186311787,
+        "recall": 0.9961977186311787,
+        "f1": 0.9961977186311787,
+        "support": 263
+      },
+      "P": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 237
+      },
+      "Q": {
+        "precision": 1.0,
+        "recall": 0.9871794871794872,
+        "f1": 0.9935483870967742,
+        "support": 156
+      },
+      "R": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "S": {
+        "precision": 0.9715909090909091,
+        "recall": 1.0,
+        "f1": 0.9855907780979827,
+        "support": 171
+      },
+      "T": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "THANKYOU": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 4
+      },
+      "U": {
+        "precision": 1.0,
+        "recall": 0.9959349593495935,
+        "f1": 0.9979633401221996,
+        "support": 246
+      },
+      "V": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 271
+      },
+      "W": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "X": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "Y": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      },
+      "Z": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 240
+      }
+    }
+  },
+  "resolution_confound_hypothesis": {
+    "_evidence": "HYPOTHESIS",
+    "statement": "Image-resolution/framing heterogeneity (see dataset.image_resolution_heterogeneity) is a plausible contributing cause for the A/E/F/K cross-domain failures left unexplained by handedness composition (h6). NOT experimentally isolated -- no controlled re-detection-at-matched-resolution test was run."
+  },
+  "isl_linguistic_validity": {
+    "_evidence": "MANUAL, cursory, non-expert",
+    "statement": "A handful of Kaggle images (A, J, G, I) were visually spot-checked and show plausible ISL fingerspelling shapes; no certified ISL interpreter or Deaf community member has reviewed the vocabulary or images at any point in this project. Not a linguistic validation."
+  },
+  "future_work_signer_session_disjoint_evaluation": {
+    "_evidence": "FUTURE_WORK",
+    "statement": "No signer- or session-disjoint evaluation exists or can exist without new, real multi-signer data collection. Protocol fully specified in docs/data_collection_protocol.md but NOT executed -- zero signer-disjoint data exists."
+  },
+  "claims_paper_can_make": [
+    "A real, CI-bounded cross-source accuracy gap exists (99.9% in-domain vs 29-62% cross-domain).",
+    "The gap is not explained by webcam sample size (H1, refuted with a matched-size control).",
+    "Part of the gap is explained by a hand-to-feature-slot assignment mismatch between capture pipelines, and a proposed fix significantly (CI-confirmed) improves it without in-domain cost.",
+    "burst_id leakage is real for the legacy-webcam subset (macro-F1 0.999->0.895) but not a meaningful control for the Kaggle-dominated majority of current data.",
+    "Handedness has no measurable effect on within-domain accuracy; left-hand information is not redundant."
+  ],
+  "claims_paper_must_not_make": [
+    "Signer-independent or session-independent recognition -- no real multi-signer data exists.",
+    "That the cross-source gap is fully explained or fully fixed.",
+    "That the Kaggle vocabulary/images have been linguistically verified as authentic ISL.",
+    "That isl_dataset.csv currently supports 35 classes (it supports 31).",
+    "Anything from the current paper/main.tex draft, which describes a superseded 842-row/18-class snapshot.",
+    "That detection-threshold/temporal-filtering differences between pipelines were controlled for in the domain-shift analysis."
+  ],
+  "paper_main_tex_status": "STALE -- describes the pre-Kaggle-merge 842-row/18-class dataset; central claim (burst-level leakage) is directly contradicted by current results. See PROJECT_DOSSIER_FINAL.md section 7 for the recommended new structure."
+}

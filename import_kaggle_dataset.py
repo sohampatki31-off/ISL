@@ -88,6 +88,13 @@ def build_detector():
     options = vision.HandLandmarkerOptions(
         base_options=base_options,
         num_hands=2,
+        # NOTE: isl_main.py's live pipeline uses 0.7 for these two thresholds,
+        # specifically to gate out weaker detections. This importer (and
+        # process_images.py / test_camera.py) use MediaPipe's 0.5 default
+        # instead, so Kaggle-derived rows in isl_dataset.csv were accepted
+        # under a looser detection gate than live-captured rows. Flagged by
+        # the Phase 1 research audit, not retroactively fixable without
+        # re-running detection against the original Kaggle images.
         min_hand_detection_confidence=0.5,
         min_hand_presence_confidence=0.5,
         min_tracking_confidence=0.5,

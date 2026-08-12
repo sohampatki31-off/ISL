@@ -1,3 +1,19 @@
+"""Bulk offline image -> feature-CSV -> model pipeline for a local
+images_dataset/ folder.
+
+NOT the canonical training path -- train_model.py is. Two real
+methodological differences from train_model.py/evaluate.py, found during
+the CVIP2026 research audit (see results/RESULTS.md, docs/reproducibility_checklist.md):
+  1. The train/test split below (see main()) is a plain stratified
+     train_test_split, not the burst/group-disjoint split train_model.py
+     uses -- any accuracy reported by running this file directly overstates
+     generalization the same way the "naive random split" leakage demo in
+     evaluate.py does.
+  2. Overwrites isl_dataset.csv's header in place (see main()) rather than
+     appending through the schema-aware path isl_main.py/train_model.py use.
+Do not use this script's own held-out accuracy number as research evidence;
+re-evaluate any data it produces with evaluate.py instead.
+"""
 import os
 import cv2
 import csv
@@ -65,6 +81,8 @@ def main():
     mp_options   = vision.HandLandmarkerOptions(
         base_options=base_options,
         num_hands=2,
+        # 0.5 here vs. isl_main.py's 0.7 -- see this file's module docstring
+        # and import_kaggle_dataset.py's matching note.
         min_hand_detection_confidence=0.5,
         min_hand_presence_confidence=0.5,
         min_tracking_confidence=0.5,

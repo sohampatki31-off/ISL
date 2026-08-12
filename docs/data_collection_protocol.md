@@ -1,25 +1,49 @@
 # Data Collection Protocol for Signer/Session-Generalization Evaluation
 
-## Why this document exists
+## Why this document exists (updated after the CVIP2026 research audit)
 
-`python evaluate.py` (see `results/RESULTS.md`) demonstrates, on the data that
-exists today, that:
+This document originally described `isl_dataset.csv` as 842 rows / 18
+classes, essentially one recording burst per class. That is no longer
+true: as of the Kaggle merge (`import_kaggle_dataset.py` + commit
+`c93321d`), `isl_dataset.csv` has **31,688 usable rows (after exact-
+duplicate removal) across 31/35 target classes**, of which:
 
-- `isl_dataset.csv` has 842 rows across 18/35 target classes, essentially
-  **one continuous recording burst per class** (19 bursts / 18 classes).
-- A naive random 80/20 split reports **100.00% accuracy** because it puts
-  near-duplicate frames from the same press-and-hold recording on both sides
-  of the split (measured: 100% of test samples' nearest same-label neighbor
-  comes from their own recording burst, across 20 random seeds).
-- A burst-disjoint split — the minimum correction — collapses to **0%**,
-  not because the model is bad, but because holding out the only burst for a
-  class removes that class from training entirely.
+- **30,872 rows (~97%)** come from a Kaggle image dataset ("Indian Sign
+  Language (ISL)" by prathumarikeri, CC BY-SA 4.0 — see `LICENSE`),
+  `session_id='kaggle_import'`. No signer/session tracking exists for
+  these rows by construction (`signer_id='kaggle_unknown'` for all of
+  them) — they are static photos from unknown contributors.
+- **~816 rows (~3%)** are hand-recorded via this app's live webcam
+  pipeline (`session_id` in `{'unknown_legacy', 'unassigned_session'}`).
+  These also carry **no real signer identity** — `signer_id` is a fixed
+  placeholder string for all of them, not a per-person id. The Trainer
+  UI's signer/session ID fields described below exist and work, but they
+  have never actually been used to record more than one distinct signer.
 
-**Conclusion: with the current data, no split can produce a real
-generalization estimate, for *any* classifier.** This is not fixable by
-better modeling or better splitting code — it requires collecting the same
-signs under genuinely independent conditions. This document specifies
-exactly how to do that with the app as it now stands.
+**What this means for generalization claims (Phase 6 decision, binding for
+the paper): do not claim signer-independent recognition anywhere.** No
+real multi-signer data exists. The strongest generalization evidence this
+project can honestly claim instead is:
+
+1. **Source-disjoint (Kaggle vs. webcam) evaluation** — real, already
+   computed (`python evaluate.py` section 4, and the deeper forensic
+   analysis in `analyze_domain_shift.py` / `build_invariant_features.py`).
+   This is the project's actual key finding: in-domain accuracy is ~99.9%
+   on Kaggle but only ~47% in-domain on webcam, and cross-domain accuracy
+   is 29-62% depending on direction — a real, evidenced domain-shift
+   result, not signer-independence, but not nothing either.
+2. **Burst-disjoint evaluation** — real, still meaningful: 97.24% accuracy
+   / 0.895 macro-F1 vs. 99.91%/0.999 naive-random, on the 29/31 classes
+   with >=2 recording bursts (`evaluate.py` section 2).
+3. **Signer-disjoint (LOSO) evaluation** — NOT available and must not be
+   claimed. The plan below is real, actionable future work, not something
+   already done. If you (or a future contributor) actually carry it out,
+   only then does LOSO evaluation become legitimate to report.
+
+This document specifies exactly how to carry out that future data
+collection with the app as it now stands, and separately documents the
+Kaggle-side provenance/license constraints for anyone extending this
+dataset further.
 
 ## What "independent" means here, precisely
 
@@ -55,10 +79,12 @@ honestly caveated as a pilot/preliminary result (not a strong claim).
   change something about lighting/framing between "sessions" even on the
   same day). Set a new `session_id` each time you sit down to record
   (e.g. `2026-08-10-morning`).
-- **Classes**: cover all 35 target classes (26 letters + 9 gestures) — 17 are
-  currently missing entirely (H, N, O, P, Q, R, S, T, W, X, Y, Z, HELP, NO,
-  PLEASE, SORRY, YES). Prioritize these first; they contribute nothing to
-  the model at all right now.
+- **Classes**: all 26 letters and 5 of the 9 word-gestures (GOOD, HELLO,
+  HELP, LOVE, THANKYOU) already have real samples (31/35 target classes).
+  Only **4 word-gestures remain entirely unrecorded: NO, PLEASE, SORRY,
+  YES** — prioritize these; they contribute nothing to the model at all
+  right now, and `isl_main.py`'s `FULL_WORD_GESTURES`/Trainer UI already
+  supports recording them without any code change.
 - **Samples per burst**: 60-100 frames (the existing 2-3 second press-and-hold
   UI flow already produces this).
 - **Total new recording effort**: 3 signers x 2 sessions x 35 classes x ~1
@@ -93,6 +119,16 @@ diversity for a first, honestly-scoped leave-one-signer-out number.
 
 ## Ethics / consent
 
+**Consent status of data already collected (as of 2026-08-12):** all 816
+hand-recorded webcam rows currently in `isl_dataset.csv`
+(`session_id` in `unknown_legacy`/`unassigned_session`) were recorded by
+this project's sole developer, recording themself — no other person's
+data is in the dataset. There is therefore no third-party human-subjects
+consent gap in the data that exists today. **This does not extend to any
+future recording involving other participants** — the requirements below
+are binding the moment a second person's data is recorded, not just for
+some hypothetical larger future collection effort.
+
 If any of this data is going into a paper, treat these as requirements, not
 suggestions — a reviewer will ask, and "we asked verbally" is not an
 adequate answer once results are published.
@@ -124,6 +160,15 @@ adequate answer once results are published.
 - If this project is affiliated with a university or company with an ethics
   review process, go through it before recording rather than after —
   retroactive approval is usually not possible.
+
+## Third-party (Kaggle) dataset constraints
+
+If extending the Kaggle-sourced portion of the data (e.g. importing more
+images via `import_kaggle_dataset.py`), see `LICENSE` for the required
+attribution/share-alike terms (CC BY-SA 4.0). Do not import additional
+external image sources without checking their license the same way —
+"we can technically download it" is not the same as "we can use it as
+publishable research evidence."
 
 ## Evaluation protocol once the data exists
 
