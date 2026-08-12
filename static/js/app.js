@@ -1,3 +1,20 @@
+// ── CSRF ─────────────────────────────────────────────────────────
+// The backend checks every POST for a token matching the one in the
+// session (see _csrf_protect in isl_main.py). Wrapping fetch once here
+// covers every POST call site below instead of threading the header
+// through each of them individually.
+(function(){
+  const token = document.querySelector('meta[name="csrf-token"]')?.content;
+  const origFetch = window.fetch;
+  window.fetch = function(url, opts){
+    opts = opts || {};
+    if ((opts.method || 'GET').toUpperCase() === 'POST' && token){
+      opts.headers = {...(opts.headers || {}), 'X-CSRF-Token': token};
+    }
+    return origFetch(url, opts);
+  };
+})();
+
 // ── Reference data ────────────────────────────────────────────
 const ALPHA = [
   {l:'A',e:'✊✊',d:'Tips of both index fingers touching'},
@@ -46,7 +63,7 @@ const WORD_GESTS = new Set(GESTS.map(g=>g.l));
   const rb = document.getElementById('ref-body');
   let h = '<div class="ref-section" data-group="letters"><div class="sec-lbl">A – Z FINGERSPELLING</div><div class="ref-grid">';
   ALPHA.forEach(a=>{
-    h+=`<div class="ref-card" id="card-${a.l}" data-search="${(a.l+' '+a.d).toLowerCase()}" title="${a.d}"><div class="char">${a.l}</div><div class="emoji">${a.e}</div><div class="desc">${a.d}</div></div>`;
+    h+=`<div class="ref-card" id="card-${a.l}" data-search="${(a.l+' '+a.d).toLowerCase()}" title="${a.d}"><div class="char">${a.l}</div><img class="ref-thumb" src="/static/img/ref/${a.l}.jpg" alt="${a.l} hand sign" loading="lazy"><div class="desc">${a.d}</div></div>`;
   });
   h+='</div></div><div class="ref-section" data-group="phrases"><div class="sec-lbl" style="margin-top:12px">SPECIAL GESTURES</div><div class="gest-grid">';
   GESTS.forEach(g=>{

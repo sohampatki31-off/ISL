@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ISL Recognition System — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+
+<div class="login-wrap">
+  <div class="glass-panel login-panel">
+    <div class="login-logo">&#9670; ISL <em>RECOGNITION</em></div>
+    <div class="login-sub">Sign in to continue</div>
+
+    {% if error %}
+    <div class="login-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login_route') }}" class="login-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label class="login-lbl" for="username">USERNAME</label>
+      <input type="text" id="username" name="username" class="pick-sel login-input" autocomplete="username" autofocus required>
+
+      <label class="login-lbl" for="password">PASSWORD</label>
+      <input type="password" id="password" name="password" class="pick-sel login-input" autocomplete="current-password" required>
+
+      <button type="submit" class="train-btn login-btn">LOG IN</button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

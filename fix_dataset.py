@@ -61,6 +61,9 @@ def keep_only_n_samples(letter, n):
         writer.writerows(rows_other)
         writer.writerows(kept)
 
+def confirm(prompt):
+    return input(f"{prompt} Type YES to confirm, anything else cancels: ").strip() == "YES"
+
 # ── Run ──────────────────────────────────────────────────
 print("=== Dataset Fix Tool ===")
 count_samples()
@@ -75,18 +78,27 @@ choice = input("\nEnter choice (1/2/3/4): ").strip()
 
 if choice == "1":
     letter = input("Which letter to delete completely? ").strip()
-    delete_letter(letter)
-    count_samples()
+    if not confirm(f"This permanently deletes ALL samples for '{letter.upper()}' from {DATA_FILE}."):
+        print("Cancelled — no changes made.")
+    else:
+        delete_letter(letter)
+        count_samples()
 
 elif choice == "2":
     letter = input("Which letter? ").strip()
     n = int(input("Keep how many samples? ").strip())
-    keep_only_n_samples(letter, n)
-    count_samples()
+    if not confirm(f"This permanently discards every sample for '{letter.upper()}' beyond the first {n}."):
+        print("Cancelled — no changes made.")
+    else:
+        keep_only_n_samples(letter, n)
+        count_samples()
 
 elif choice == "3":
     letter = input("Which letter to delete LATEST N samples? ").strip()
     n = int(input("Delete how many latest samples? ").strip())
+    if not confirm(f"This permanently deletes the latest {n} samples for '{letter.upper()}'."):
+        print("Cancelled — no changes made.")
+        raise SystemExit(0)
     letter = letter.upper().strip()
     rows_other = []
     rows_letter = []

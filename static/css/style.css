@@ -295,6 +295,11 @@ header{
 .ref-card .char{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--teal);margin-bottom:3px}
 .ref-card.active .char{color:var(--amber);text-shadow:0 0 14px var(--amberg)}
 .ref-card .emoji{font-size:1rem;margin-bottom:5px}
+.ref-card .ref-thumb{
+  width:56px;height:56px;object-fit:cover;border-radius:8px;margin-bottom:5px;
+  border:1px solid var(--border);background:#000;
+}
+.ref-card.active .ref-thumb{border-color:rgba(139,174,102,.4)}
 .ref-card .desc{font-size:.56rem;color:var(--text3);line-height:1.35}
 .ref-card.active .desc{color:var(--text2)}
 .gest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
@@ -650,5 +655,30 @@ header{
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
+
+/* ── LOGIN PAGE ──────────────────────────────────────────────── */
+body.login-body{overflow:auto;align-items:center;justify-content:center;min-height:100vh}
+.login-wrap{width:100%;max-width:380px;margin:auto;padding:24px}
+.login-panel{padding:32px 28px;align-items:stretch}
+.login-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:.04em;text-align:center;color:var(--text)}
+.login-logo em{color:var(--amber);font-style:normal}
+.login-sub{text-align:center;font-size:.72rem;color:var(--text3);margin-top:4px;margin-bottom:22px}
+.login-error{
+  background:var(--roseg);border:1px solid var(--rose);color:var(--rose);
+  border-radius:8px;padding:9px 12px;font-size:.72rem;margin-bottom:16px;text-align:center;
+}
+.login-form{display:flex;flex-direction:column;gap:6px}
+.login-lbl{font-size:.6rem;font-weight:600;letter-spacing:.12em;color:var(--text3);margin-top:10px}
+.login-input{padding:11px 12px;font-size:.85rem;cursor:text}
+.login-btn{margin-top:20px;width:100%}
+
+/* ── ROLE-GATED NAV (see templates/index.html) ──────────────────
+   The DOM keeps all 4 pages/nav buttons regardless of role (removing
+   Trainer/How-it-works markup entirely would crash app.js's top-level
+   code that assumes #class-sel etc. always exist) -- customers just
+   never see or reach them. The actual security boundary is server-side:
+   every Trainer-tab endpoint is @admin_required in isl_main.py, so this
+   CSS is a UI convenience, not the enforcement. */
+body.role-customer .admin-only{display:none !important}
 
 

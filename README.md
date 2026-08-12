@@ -26,8 +26,14 @@ the full set.
 
 | Owns | Files | Rule |
 |---|---|---|
-| **Backend** | `isl_main.py`, `train_model.py`, `evaluate.py`, `fix_dataset.py`, `inspect_models.py`, `process_images.py`, `test_camera.py`, `isl_model.pkl`, `labels.pkl`, `isl_dataset.csv`, `isl_model_one_hand.pkl`, `labels_one_hand.pkl`, `isl_dataset_one_hand.csv`, `hand_landmarker.task`, `start.bat`, `sp_asep.pdf`, `docs/`, `paper/`, `results/`, `requirements.txt`, `.gitignore`, plus this README and `AGENTS.md` — **and anything else not listed in the Frontend row** | Do not modify. This is tuned, working hand-tracking/ML code plus supporting data/docs. If a frontend feature needs new data from the backend, add a new field to an existing response — never rename/remove an existing one — and flag it rather than editing `isl_main.py` directly. |
-| **Frontend** | `templates/index.html`, `static/css/style.css`, `static/js/app.js` (and new frontend files added alongside them) | Safe to redesign freely — layout, styling, UX, all of it — as long as it keeps calling the API contract below with the same URLs, methods, and field names. |
+| **Backend** | `isl_main.py`, `train_model.py`, `evaluate.py`, `fix_dataset.py`, `inspect_models.py`, `process_images.py`, `test_camera.py`, `import_kaggle_dataset.py`, `isl_model.pkl`, `labels.pkl`, `isl_dataset.csv`, `hand_landmarker.task`, `start.bat`, `sp_asep.pdf`, `docs/`, `paper/`, `results/`, `requirements.txt`, `.gitignore`, `LICENSE`, plus this README and `AGENTS.md` — **and anything else not listed in the Frontend row** | Do not modify. This is tuned, working hand-tracking/ML code plus supporting data/docs. If a frontend feature needs new data from the backend, add a new field to an existing response — never rename/remove an existing one — and flag it rather than editing `isl_main.py` directly. |
+| **Frontend** | `templates/index.html`, `templates/login.html`, `static/css/style.css`, `static/js/app.js`, `static/img/` (and new frontend files added alongside them) | Safe to redesign freely — layout, styling, UX, all of it — as long as it keeps calling the API contract below with the same URLs, methods, and field names, and keeps sending the CSRF token (see Authentication) on every POST. |
+
+`isl_dataset_kaggle.csv` / `isl_model_kaggle.pkl` / `labels_kaggle.pkl` and
+`isl_dataset_one_hand.csv` / `isl_model_one_hand.pkl` / `labels_one_hand.pkl`
+are experimental side-outputs of `import_kaggle_dataset.py` — not read by
+`isl_main.py`, gitignored, and regeneratable from that script rather than
+version-controlled.
 
 If you (or an agent) want to introduce a frontend build step or framework:
 it still has to end up served by, or proxied to, this same Flask process —
@@ -35,13 +41,40 @@ the backend has no CORS setup and isn't a separate API server on its own
 origin. The simplest path is to keep editing the existing plain JS/CSS/HTML
 in place.
 
+## Authentication
+
+Every route below except `/login` requires a logged-in session; most also
+require the `admin` role specifically (noted per-route). There are exactly
+two accounts, `admin` and `customer` — `admin` gets the Trainer tab and all
+recording/training/dataset-editing endpoints, `customer` gets camera +
+recognition + reference only. Both are generated automatically the first
+time you run `python isl_main.py`: random passwords are hashed into
+`auth_users.json` (gitignored, never commit it) and the **plaintext
+passwords are printed to the console exactly once, on that first run** —
+copy them down then, because there is no other way to retrieve them later.
+
+To reset either password, stop the server, delete `auth_users.json`, and
+restart — this regenerates **both** accounts with fresh random passwords
+(there's no per-account reset).
+
+- `GET /login`, `POST /login` — login form. 5 failed attempts from the same
+  IP within 5 minutes locks that IP out for 5 minutes.
+- `POST /logout` — clears the session.
+- Every `POST` request (including the login form itself) must include the
+  session's CSRF token, either as a `csrf_token` form field or an
+  `X-CSRF-Token` header — the token is embedded in `<meta name="csrf-token">`
+  on `index.html` and as a hidden field on both HTML forms. Requests missing
+  or mismatching it get `403`. Requests with no session at all get `401`
+  (`403` instead if the route is admin-only and the session is a `customer`).
+
 ## API contract
 
 All responses are JSON unless noted. This is what the frontend currently
-depends on — preserve it.
+depends on — preserve it. Routes marked **[admin]** 403 for the `customer`
+role; all others just need any logged-in session (see Authentication above).
 
 ### Page / assets
-- `GET /` — renders `templates/index.html`.
+- `GET /` — renders `templates/index.html`; redirects to `/login` if not logged in.
 - `GET /version` — `{ build, camera_status, has_frame }`. Confirms the running build.
 
 ### Video
@@ -65,16 +98,16 @@ depends on — preserve it.
   speaks `tts_text` when `tts_id` increases. `letter_flash` is true for one
   poll after a new letter locks in, then auto-resets server-side.
 
-- `GET /training_status` → `{ status, accuracy, macro_f1, eval_note, error }`. `status` is one of `idle | training | success | error`.
-- `GET /dataset_info` → `{ "A": 12, "B": 40, ... }` — sample counts per class.
-- `GET /known_signers` → `["s1", "s2", ...]` — distinct signer ids recorded so far.
+- `GET /training_status` **[admin]** → `{ status, accuracy, macro_f1, eval_note, error }`. `status` is one of `idle | training | success | error`.
+- `GET /dataset_info` **[admin]** → `{ "A": 12, "B": 40, ... }` — sample counts per class.
+- `GET /known_signers` **[admin]** → `["s1", "s2", ...]` — distinct signer ids recorded so far.
 
 ### Actions
 - `POST /action` — body `{ "action": "...", ...extra }`. `action` is one of:
   `space | enter | backspace | backspace_word | clear | punct (needs "char") | quick_phrase (needs "text") | suggest (needs "index") | auto_speak (needs "value") | clear_history`.
   Returns `{ status: "ok", tts: "..." }`.
 
-### Recording / training (Trainer tab)
+### Recording / training (Trainer tab) — all **[admin]**
 - `POST /start_recording` — body `{ label, signer_id, session_id }` → `{ status, current_count }`.
 - `POST /stop_recording` → `{ status, label, count, counts }`.
 - `POST /delete_latest` — body `{ label }` → `{ status, count, counts }`.
@@ -82,7 +115,7 @@ depends on — preserve it.
 - `POST /train` → `{ status: "started" }` (kicks off background training; poll `/training_status` for progress).
 
 ### Misc
-- `POST /set_resolution` — body `{ width, height }`, only `(1280,720)` or `(640,480)` accepted → `{ status, width, height }`.
+- `POST /set_resolution` **[admin]** — body `{ width, height }`, only `(1280,720)` or `(640,480)` accepted → `{ status, width, height }`.
 - `GET /download_history` — plain-text file download of the session transcript.
 
 ## Hand-tracking pipeline notes
@@ -103,7 +136,9 @@ pip install -r requirements.txt
 # place hand_landmarker.task next to isl_main.py (see the download URL in isl_main.py's docstring)
 python isl_main.py
 ```
-Opens `http://localhost:5000` automatically.
+Opens `http://localhost:5000` automatically. **On the very first run, watch
+the console** — it prints the auto-generated `admin`/`customer` passwords
+exactly once (see Authentication above).
 
 ## Retraining
 

@@ -19,7 +19,18 @@ import pickle
 import csv
 import threading
 import time
-from flask import Flask, Response, jsonify, request, render_template, make_response
+import secrets
+import json
+import shutil
+import glob
+import hmac
+from datetime import timedelta
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import (
+    Flask, Response, jsonify, request, render_template, make_response,
+    session, redirect, url_for,
+)
 from flask_socketio import SocketIO, emit
 import webbrowser
 import os
@@ -63,6 +74,177 @@ def speak(text):
 # ── Flask ──────────────────────────────────────────────────────────
 app = Flask(__name__)
 sio = SocketIO(app, async_mode="threading", cors_allowed_origins="*")
+# SESSION_COOKIE_SECURE is deliberately left unset (False): this app is
+# served over plain HTTP on localhost/LAN, and marking the cookie secure
+# would make the browser silently drop it, breaking login entirely.
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+)
+
+# ── Auth ─────────────────────────────────────────────────────────────
+# Two fixed roles: 'admin' (everything, incl. the Trainer tab and all
+# recording/training/dataset-editing endpoints) and 'customer' (camera +
+# recognition + reference only — see the @admin_required routes below and
+# templates/index.html's role-gated nav). Credentials are generated once
+# on first run (random, never hardcoded) and stored hashed in a gitignored
+# local file; the plaintext is printed to the console exactly once so
+# whoever runs this can retrieve it. The Flask session secret key is
+# likewise generated once and persisted locally so restarting the server
+# doesn't invalidate every open session.
+SECRET_KEY_PATH = ".flask_secret_key"
+AUTH_USERS_PATH = "auth_users.json"
+
+def _load_or_create_secret_key():
+    if os.path.exists(SECRET_KEY_PATH):
+        with open(SECRET_KEY_PATH, "r") as f:
+            key = f.read().strip()
+            if key:
+                return key
+    key = secrets.token_hex(32)
+    with open(SECRET_KEY_PATH, "w") as f:
+        f.write(key)
+    return key
+
+def _load_or_create_auth_users():
+    if os.path.exists(AUTH_USERS_PATH):
+        with open(AUTH_USERS_PATH, "r") as f:
+            return json.load(f)
+    admin_password    = secrets.token_urlsafe(9)
+    customer_password = secrets.token_urlsafe(9)
+    users = {
+        "admin":    {"password_hash": generate_password_hash(admin_password),    "role": "admin"},
+        "customer": {"password_hash": generate_password_hash(customer_password), "role": "customer"},
+    }
+    with open(AUTH_USERS_PATH, "w") as f:
+        json.dump(users, f, indent=2)
+    print("=" * 60)
+    print("First run: created login accounts (hashes saved to "
+          f"{AUTH_USERS_PATH}). This is the ONLY time the plaintext "
+          "passwords are shown -- save them now:")
+    print(f"  admin account:    username=admin    password={admin_password}")
+    print(f"  customer account: username=customer password={customer_password}")
+    print(f"To reset either password, delete {AUTH_USERS_PATH} and restart "
+          "(this generates fresh random passwords for both accounts).")
+    print("=" * 60)
+    return users
+
+AUTH_USERS = _load_or_create_auth_users()
+app.secret_key = _load_or_create_secret_key()
+
+def _get_csrf_token():
+    """Session-bound CSRF token, created on first render and reused for the
+    life of that session. Forms embed it as a hidden field; app.js reads it
+    off the <meta> tag in index.html and sends it back as a header — either
+    way it's checked against the session copy in _csrf_protect() below."""
+    token = session.get("csrf_token")
+    if not token:
+        token = secrets.token_hex(16)
+        session["csrf_token"] = token
+    return token
+
+@app.before_request
+def _csrf_protect():
+    if request.method != "POST":
+        return
+    token    = session.get("csrf_token")
+    supplied = request.headers.get("X-CSRF-Token") or request.form.get("csrf_token")
+    if not token or not supplied or not hmac.compare_digest(token, supplied):
+        return jsonify({"error": "Invalid or missing CSRF token. Reload the page and try again."}), 403
+
+# ── Login rate limiting ──────────────────────────────────────────────
+# Keyed by client IP so repeated wrong-password POSTs get slowed down
+# instead of allowing unlimited guesses. Deliberately simple/in-memory —
+# this is a LAN login gate, not a public-internet auth service.
+LOGIN_MAX_ATTEMPTS    = 5     # failed attempts allowed per window
+LOGIN_WINDOW_SECONDS  = 300   # window over which attempts are counted
+LOGIN_LOCKOUT_SECONDS = 300   # lockout duration once the limit is hit
+_login_attempts = {}   # ip -> {"count", "window_start", "locked_until"}
+_login_attempts_lock = threading.Lock()
+
+def _login_locked_out(ip):
+    with _login_attempts_lock:
+        entry = _login_attempts.get(ip)
+        return bool(entry) and time.time() < entry.get("locked_until", 0)
+
+def _record_login_attempt(ip, success):
+    with _login_attempts_lock:
+        if success:
+            _login_attempts.pop(ip, None)
+            return
+        now   = time.time()
+        entry = _login_attempts.get(ip)
+        if not entry or now - entry["window_start"] > LOGIN_WINDOW_SECONDS:
+            entry = {"count": 0, "window_start": now, "locked_until": 0}
+        entry["count"] += 1
+        if entry["count"] >= LOGIN_MAX_ATTEMPTS:
+            entry["locked_until"] = now + LOGIN_LOCKOUT_SECONDS
+        _login_attempts[ip] = entry
+
+def login_page_required(fn):
+    """For browser-navigated pages (just '/'): redirect to the login page
+    instead of a bare 401, since a human is looking at this in a browser."""
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("role"):
+            return redirect(url_for("login_route"))
+        return fn(*args, **kwargs)
+    return wrapper
+
+def login_required(fn):
+    """For API/data endpoints the frontend calls via fetch/img — any logged
+    in role (admin or customer) may use these."""
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("role"):
+            return jsonify({"error": "login required"}), 401
+        return fn(*args, **kwargs)
+    return wrapper
+
+def admin_required(fn):
+    """Trainer-tab endpoints: recording, deleting/clearing samples, training,
+    dataset/signer introspection, and resolution control. Customers never
+    see the Trainer tab in the UI; this is the server-side enforcement of
+    that so a direct API call can't bypass it either."""
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        role = session.get("role")
+        if not role:
+            return jsonify({"error": "login required"}), 401
+        if role != "admin":
+            return jsonify({"error": "admin access required"}), 403
+        return fn(*args, **kwargs)
+    return wrapper
+
+@app.route('/login', methods=['GET', 'POST'])
+def login_route():
+    if request.method == 'POST':
+        ip = request.remote_addr or "unknown"
+        if _login_locked_out(ip):
+            return render_template('login.html', csrf_token=_get_csrf_token(),
+                error="Too many failed attempts. Try again in a few minutes."), 429
+        username = (request.form.get('username') or '').strip()
+        password = request.form.get('password') or ''
+        user = AUTH_USERS.get(username)
+        if user and check_password_hash(user['password_hash'], password):
+            _record_login_attempt(ip, success=True)
+            session.clear()
+            session.permanent = True   # honor PERMANENT_SESSION_LIFETIME above
+            session['username'] = username
+            session['role'] = user['role']
+            return redirect(url_for('index'))
+        _record_login_attempt(ip, success=False)
+        return render_template('login.html', csrf_token=_get_csrf_token(),
+                                error="Invalid username or password.")
+    if session.get('role'):
+        return redirect(url_for('index'))
+    return render_template('login.html', csrf_token=_get_csrf_token(), error=None)
+
+@app.route('/logout', methods=['POST'])
+def logout_route():
+    session.clear()
+    return redirect(url_for('login_route'))
 
 # ── Load model ─────────────────────────────────────────────────────
 print("Loading model...")
@@ -641,9 +823,11 @@ def detector_loop():
                 except Exception as e:
                     print(f"Error saving sample: {e}")
 
-            if model is not None:
+            with cam_lock:
+                cur_model, cur_features = model, model_features
+            if cur_model is not None:
                 try:
-                    if model_features == 132:
+                    if cur_features == 132:
                         feat = np.array(feat_132).reshape(1, -1)
                     else:
                         coords = next(iter(smoothed_hands.values())).copy()
@@ -651,8 +835,8 @@ def detector_loop():
                         s = np.linalg.norm(coords[9])
                         if s > 0: coords /= s
                         feat = coords.flatten().reshape(1, -1)
-                    pred    = model.predict(feat)[0]
-                    prob    = model.predict_proba(feat)[0]
+                    pred    = cur_model.predict(feat)[0]
+                    prob    = cur_model.predict_proba(feat)[0]
                     det_letter = str(pred)
                     det_conf   = float(np.max(prob))
                 except Exception:
@@ -769,8 +953,27 @@ def _load_dataset():
     return np.array(X), np.array(y, dtype=object), np.array(groups, dtype=object)
 
 # ── Model training ─────────────────────────────────────────────────
+# A retrain already in progress used to make a concurrent request just
+# silently no-op, so the live model could quietly lag behind whatever
+# recording/edit triggered that dropped request. _retrain_pending instead
+# remembers that one more pass is owed and train_model_bg's tail launches
+# it itself once the current run finishes, so nothing gets lost — it just
+# queues up to at most one extra run (not one per dropped request).
+_retrain_pending = False
+_retrain_pending_lock = threading.Lock()
+
+def request_retrain(silent=True):
+    with training_lock:
+        already_running = training_state["status"] == "training"
+    if already_running:
+        with _retrain_pending_lock:
+            global _retrain_pending
+            _retrain_pending = True
+        return
+    threading.Thread(target=train_model_bg, args=(silent,), daemon=True).start()
+
 def train_model_bg(silent=False):
-    global model, labels, model_features
+    global model, labels, model_features, _retrain_pending
     # Silent (auto) retraining: bail out quietly unless there's enough data.
     if silent:
         try:
@@ -782,6 +985,8 @@ def train_model_bg(silent=False):
 
     with training_lock:
         if training_state["status"] == "training":
+            with _retrain_pending_lock:
+                _retrain_pending = True
             return
         training_state["status"] = "training"; training_state["error"] = ""
     sio.emit("training_status", training_state)
@@ -846,13 +1051,49 @@ def train_model_bg(silent=False):
             training_state["status"] = "error"; training_state["error"] = str(e)
         sio.emit("training_status", training_state)
 
+    with _retrain_pending_lock:
+        need_more = _retrain_pending
+        _retrain_pending = False
+    if need_more:
+        threading.Thread(target=train_model_bg, args=(True,), daemon=True).start()
+
 # ── Dataset utilities ──────────────────────────────────────────────
+# Destructive rewrites (delete/clear a class) used to open isl_dataset.csv
+# directly in 'w' mode: if the process died mid-write, the entire training
+# set -- the actual asset here -- could be left truncated with no way back.
+# _write_dataset_atomic backs up the previous version first, then writes
+# to a temp file and swaps it in with os.replace(), which is atomic on
+# both Windows and POSIX (either the old or the new file is what's on
+# disk after a crash, never a half-written one).
+DATASET_BACKUP_DIR = "backups"
+MAX_DATASET_BACKUPS = 5
+
+def _backup_dataset():
+    if not os.path.exists(DATASET_PATH):
+        return
+    os.makedirs(DATASET_BACKUP_DIR, exist_ok=True)
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    shutil.copy2(DATASET_PATH, os.path.join(DATASET_BACKUP_DIR, f"isl_dataset_{ts}.csv"))
+    backups = sorted(glob.glob(os.path.join(DATASET_BACKUP_DIR, "isl_dataset_*.csv")))
+    for old in backups[:-MAX_DATASET_BACKUPS]:
+        try: os.remove(old)
+        except OSError: pass
+
+def _write_dataset_atomic(header, rows):
+    _backup_dataset()
+    tmp_path = DATASET_PATH + ".tmp"
+    with open(tmp_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        if header: writer.writerow(header)
+        writer.writerows(rows)
+    os.replace(tmp_path, DATASET_PATH)
+
 def get_dataset_counts():
     counts = {l: 0 for l in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
     for g in FULL_WORD_GESTURES: counts[g] = 0
-    if os.path.exists("isl_dataset.csv"):
+    if os.path.exists(DATASET_PATH):
         try:
-            with open("isl_dataset.csv", "r") as f:
+            with open(DATASET_PATH, "r", newline="") as f:
                 reader = csv.reader(f)
                 next(reader, None)
                 for row in reader:
@@ -865,6 +1106,7 @@ def get_dataset_counts():
 
 # ── Flask Routes ───────────────────────────────────────────────────
 @app.route('/state')
+@login_required
 def get_state():
     with state_lock:
         s = app_state.copy()
@@ -872,6 +1114,7 @@ def get_state():
     return jsonify(s)
 
 @app.route('/known_signers')
+@admin_required
 def known_signers():
     """Distinct signer_id values already recorded, so the Trainer UI can
     suggest them and reduce the chance of two different contributors
@@ -890,10 +1133,12 @@ def known_signers():
     return jsonify(sorted(ids))
 
 @app.route('/dataset_info')
+@admin_required
 def dataset_info():
     return jsonify(get_dataset_counts())
 
 @app.route('/start_recording', methods=['POST'])
+@admin_required
 def start_recording():
     global _burst_counter
     data      = request.get_json(silent=True) or {}
@@ -912,64 +1157,64 @@ def start_recording():
     return jsonify({"status": "ok", "current_count": counts.get(label, 0)})
 
 @app.route('/stop_recording', methods=['POST'])
+@admin_required
 def stop_recording():
     with recording_lock:
         recording_state["is_recording"] = False
         lbl, count = recording_state["label"], recording_state["sample_count"]
-    threading.Thread(target=train_model_bg, args=(True,), daemon=True).start()
+    request_retrain(silent=True)
     return jsonify({"status": "ok", "label": lbl, "count": count, "counts": get_dataset_counts()})
 
 @app.route('/delete_latest', methods=['POST'])
+@admin_required
 def delete_latest():
     data  = request.get_json(silent=True) or {}
     label = data.get("label", "").strip().upper()
     if not label: return jsonify({"error": "No label"}), 400
     rows_other, rows_letter, header = [], [], None
-    if os.path.exists("isl_dataset.csv"):
-        with open("isl_dataset.csv", "r") as f:
+    if os.path.exists(DATASET_PATH):
+        with open(DATASET_PATH, "r", newline="") as f:
             reader = csv.reader(f)
             header = next(reader, None)
             for row in reader:
                 if row:
                     (rows_letter if row[-1].strip().upper() == label else rows_other).append(row)
     if rows_letter: rows_letter.pop()
-    with open("isl_dataset.csv", "w", newline="") as f:
-        writer = csv.writer(f)
-        if header: writer.writerow(header)
-        writer.writerows(rows_other + rows_letter)
-    threading.Thread(target=train_model_bg, args=(True,), daemon=True).start()
+    _write_dataset_atomic(header, rows_other + rows_letter)
+    request_retrain(silent=True)
     return jsonify({"status": "ok", "count": len(rows_letter), "counts": get_dataset_counts()})
 
 @app.route('/clear_class', methods=['POST'])
+@admin_required
 def clear_class():
     data  = request.get_json(silent=True) or {}
     label = data.get("label", "").strip().upper()
     if not label: return jsonify({"error": "No label"}), 400
     rows_other, header = [], None
-    if os.path.exists("isl_dataset.csv"):
-        with open("isl_dataset.csv", "r") as f:
+    if os.path.exists(DATASET_PATH):
+        with open(DATASET_PATH, "r", newline="") as f:
             reader = csv.reader(f)
             header = next(reader, None)
             for row in reader:
                 if row and row[-1].strip().upper() != label:
                     rows_other.append(row)
-    with open("isl_dataset.csv", "w", newline="") as f:
-        writer = csv.writer(f)
-        if header: writer.writerow(header)
-        writer.writerows(rows_other)
-    threading.Thread(target=train_model_bg, args=(True,), daemon=True).start()
+    _write_dataset_atomic(header, rows_other)
+    request_retrain(silent=True)
     return jsonify({"status": "ok", "count": 0, "counts": get_dataset_counts()})
 
 @app.route('/train', methods=['POST'])
+@admin_required
 def trigger_train():
-    threading.Thread(target=train_model_bg, daemon=True).start()
+    request_retrain(silent=False)
     return jsonify({"status": "started"})
 
 @app.route('/training_status')
+@admin_required
 def get_training_status():
     with training_lock: return jsonify(training_state)
 
 @app.route('/action', methods=['POST'])
+@login_required
 def action():
     data     = request.get_json(silent=True) or {}
     act_name = data.get('action', '')
@@ -1058,6 +1303,7 @@ def action():
     return jsonify({"status": "ok", "tts": (tts_text or "")})
 
 @app.route('/set_resolution', methods=['POST'])
+@admin_required
 def set_resolution():
     data = request.get_json(silent=True) or {}
     w, h = int(data.get('width', 1280)), int(data.get('height', 720))
@@ -1067,6 +1313,7 @@ def set_resolution():
     return jsonify({"status": "ok", "width": w, "height": h})
 
 @app.route('/download_history')
+@login_required
 def download_history():
     with state_lock:
         hist = list(app_state.get("history", []))
@@ -1078,13 +1325,16 @@ def download_history():
 BUILD_TAG = "final-mjpeg-3-decoupled"   # bump to confirm the running code is current
 
 @app.route('/')
+@login_page_required
 def index():
-    resp = make_response(render_template('index.html'))
+    resp = make_response(render_template('index.html', role=session.get('role'),
+                                           csrf_token=_get_csrf_token()))
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
     return resp
 
 @app.route('/version')
+@login_required
 def version():
     # Open http://localhost:5000/version to confirm you're running THIS file.
     return jsonify({"build": BUILD_TAG, "camera_status": camera_status,
@@ -1128,6 +1378,7 @@ def _current_jpeg():
         return _placeholder_jpeg("Server error: " + str(e))
 
 @app.route('/frame.jpg')
+@login_required
 def frame_jpg():
     # Single JPEG per request — kept for compatibility/debugging
     # (see /video_feed for the streamed feed the UI actually uses).
@@ -1151,6 +1402,7 @@ def _gen_mjpeg():
         time.sleep(0.01)
 
 @app.route('/video_feed')
+@login_required
 def video_feed():
     return Response(_gen_mjpeg(), mimetype='multipart/x-mixed-replace; boundary=frame')
 

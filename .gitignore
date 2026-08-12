@@ -2,3 +2,23 @@ __pycache__/
 *.pyc
 .claude/
 *.pre_schema_migration.bak
+
+# Auth secrets (generated on first run — see isl_main.py's
+# _load_or_create_auth_users/_load_or_create_secret_key). Never commit
+# plaintext or hashed credentials or the session-signing key.
+.flask_secret_key
+auth_users.json
+
+# Rolling pre-write backups of isl_dataset.csv (see _backup_dataset in
+# isl_main.py) — local safety net, not project history.
+backups/
+
+# Kaggle/one-hand experimental dataset+model artifacts — outputs of
+# import_kaggle_dataset.py, never read by isl_main.py itself. Regenerate
+# from that script rather than versioning ~90MB of derived data.
+isl_dataset_kaggle.csv
+isl_model_kaggle.pkl
+labels_kaggle.pkl
+isl_dataset_one_hand.csv
+isl_model_one_hand.pkl
+labels_one_hand.pkl

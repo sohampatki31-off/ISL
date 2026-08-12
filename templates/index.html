@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ISL Recognition System</title>
 <meta name="description" content="Real-time Indian Sign Language recognition system with hand tracking, word formation, and model training.">
+<meta name="csrf-token" content="{{ csrf_token }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -12,7 +13,7 @@
      Socket.IO/Engine.IO client-vs-server version mismatches entirely. -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body class="role-{{ role }}">
 
 <!-- ═══ OFFLINE BANNER ═══ -->
 <div class="offline-banner" id="offline-ban">
@@ -33,9 +34,9 @@
   <div class="logo">&#9670; ISL <em>RECOGNITION</em></div>
   <nav class="page-nav">
     <button class="page-btn active" id="nav-recognize" data-accent="amber"  onclick="goPage('recognize')">&#9670; DETECT</button>
-    <button class="page-btn"        id="nav-pipeline"  data-accent="violet" onclick="goPage('pipeline')">&#9670; HOW IT WORKS</button>
+    <button class="page-btn admin-only" id="nav-pipeline"  data-accent="violet" onclick="goPage('pipeline')">&#9670; HOW IT WORKS</button>
     <button class="page-btn"        id="nav-reference" data-accent="teal"   onclick="goPage('reference')">&#9670; HAND SIGNS</button>
-    <button class="page-btn"        id="nav-trainer"   data-accent="cyan"   onclick="goPage('trainer')">&#9670; TRAINER</button>
+    <button class="page-btn admin-only" id="nav-trainer"   data-accent="cyan"   onclick="goPage('trainer')">&#9670; TRAINER</button>
   </nav>
   <div class="hdr-end">
     <div class="hdr-div"></div>
@@ -54,8 +55,12 @@
     <div class="hdr-div"></div>
     <div class="stat-pill">&#9670; <b id="sess-timer">00:00</b></div>
     <div class="stat-pill">LETTERS <b id="stat-ltrs">0</b></div>
-    <div class="stat-pill">Model: <b id="class-count">—</b></div>
+    <div class="stat-pill admin-only">Model: <b id="class-count">—</b></div>
     <button class="tab-btn" onclick="toggleSC()" title="Keyboard shortcuts">?</button>
+    <form method="POST" action="{{ url_for('logout_route') }}" style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="tab-btn" title="Log out">&#9099;</button>
+    </form>
   </div>
 </header>
 
@@ -176,7 +181,7 @@
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!--   PAGE 2 — DETECTION PROGRAM DETAILS ("HOW IT WORKS")      -->
 <!-- ═══════════════════════════════════════════════════════════ -->
-<section class="page" id="page-pipeline">
+<section class="page admin-only" id="page-pipeline">
 
   <div class="pipe-hero">
     <h1 class="pipe-page-title">How Detection Works</h1>
@@ -334,7 +339,7 @@
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!--   PAGE 4 — TRAINER                                         -->
 <!-- ═══════════════════════════════════════════════════════════ -->
-<section class="page" id="page-trainer">
+<section class="page admin-only" id="page-trainer">
 
   <!-- Camera -->
   <div class="glass-panel">

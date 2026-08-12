@@ -89,7 +89,7 @@ def main():
     results["environment"] = {
         "python": platform.python_version(),
         "platform": platform.platform(),
-        "processor": "Intel(R) Core(TM) Ultra 5 125H",
+        "processor": platform.processor() or "unknown",
         "sklearn": sklearn.__version__,
         "numpy": np.__version__,
         "scipy": scipy.__version__,
@@ -114,8 +114,6 @@ def main():
 
     results["descriptive"] = {
         "n_samples": n, "n_classes_present": n_classes, "n_classes_target": 35,
-        "missing_classes": sorted(set([chr(c) for c in range(65, 91)]) - set(class_counts) - {"J","Q","X","Z"})
-                            if False else None,  # computed properly below
         "class_counts": class_counts,
         "burst_counts_per_class": burst_counts_per_class,
         "unique_signer_ids": sorted(unique_signers),
